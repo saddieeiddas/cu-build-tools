@@ -8,7 +8,7 @@ Installation
 
 Run
 
-```
+```sh
 npm install https://github.com/saddieeiddas/cu-ui-build-tools.git --save-dev
 ```
 
@@ -18,7 +18,7 @@ Usage
 
 This will provide some base gulp tasks that you can import into your library or module.
 
-```
+```js
 'use strict';
 
 var gulp = require('gulp');
@@ -34,7 +34,7 @@ Library Builder
 
 This will add gulp tasks to build a library, it also exposes some configuration:
 
-```
+```js
 'use strict';
 
 var gulp = require('gulp');
