@@ -47,7 +47,7 @@ var buildConfig = {
   srcGlob: ['src/**/*.js', 'src/**/*.jsx'],
   bundleDir: 'bundle',
   libDir: 'lib',
-  libraryName: 'cu-lib-example',
+  libraryName: 'cu-ui-boilerplate-library',
   libraryFile: 'src/library.js',
   definitionFile: 'src/library.d.ts',
   bundleFile: 'src/bundle.js',
@@ -106,7 +106,7 @@ var buildConfig = {
   buildType: 'component',
   tsGlob: ['module/ts/**/*.ts', 'module/ts/**/*.tsx'],
   bundleDir: 'module/js',
-  moduleName: 'cu-module-ts-example',
+  moduleName: 'cu-ui-boilerplate-component',
   moduleFile: 'module/ts/module.ts',
   serverPort: 9000
 };
