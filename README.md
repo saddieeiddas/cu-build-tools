@@ -94,3 +94,16 @@ Component Builder
 -----------------
 
 TODO
+
+This will be a builder specific for `components` and will work slightly different to the `library` builder, although it will
+still expose similar gulp commands to make sure things are easy to remember.
+
+---
+
+Multi Builder
+-------------
+
+TODO
+
+This will be a builder for projects that contain many sub `libraries` and `components` and will provide auto type detection
+to allow building everything from one gulpfile.
