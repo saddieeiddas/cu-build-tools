@@ -6,6 +6,4 @@
 
 'use strict';
 
-module.exports = {
-  library: require('./lib/library')
-};
+module.exports = require('./lib/auto');
