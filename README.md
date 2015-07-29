@@ -17,14 +17,14 @@ npm install https://github.com/saddieeiddas/cu-ui-build-tools.git --save-dev
 Usage
 -----
 
-This will provide some base gulp tasks that you can import into your library or module.
+This will provide some base gulp tasks that you can import into your library or component.
 
 ```js
 'use strict';
 
 var gulp = require('gulp');
 
-require('cu-ui-build-tools').library(gulp, {
+require('cu-ui-build-tools')(gulp, {
   // ... configuration
 });
 ```
@@ -41,9 +41,10 @@ This will add gulp tasks to build a library, it also exposes some configuration:
 
 var gulp = require('gulp');
 
-// configuration for the builder (this could be stored in external file/module like "cu-build.js")
+// configuration for the builder (this could be stored in external file/module like "cu-build.config.js")
 var buildConfig = {
-  srcGlob: 'src/**/*.js',
+  buildType: 'library',
+  srcGlob: ['src/**/*.js', 'src/**/*.jsx'],
   bundleDir: 'bundle',
   libDir: 'lib',
   libraryName: 'cu-lib-example',
@@ -53,7 +54,7 @@ var buildConfig = {
   serverPort: 9000
 };
 
-require('cu-ui-build-tools').library(gulp, buildConfig);
+require('cu-ui-build-tools')(gulp, buildConfig);
 ```
 
 This will provide the following gulp tasks
@@ -93,10 +94,49 @@ This will copy any additional files to the `bundle` and `lib` directories
 Component Builder
 -----------------
 
-TODO
+This will add gulp tasks to build a component, it also exposes some configuration:
 
-This will be a builder specific for `components` and will work slightly different to the `library` builder, although it will
-still expose similar gulp commands to make sure things are easy to remember.
+```js
+'use strict';
+
+var gulp = require('gulp');
+
+// configuration for the builder (this could be stored in external file/module like "cu-build.config.js")
+var buildConfig = {
+  buildType: 'component',
+  tsGlob: ['module/ts/**/*.ts', 'module/ts/**/*.tsx'],
+  bundleDir: 'module/js',
+  moduleName: 'cu-module-ts-example',
+  moduleFile: 'module/ts/module.ts',
+  serverPort: 9000
+};
+
+require('cu-ui-build-tools')(gulp, buildConfig);
+```
+
+This will provide the following gulp tasks
+
+##### `gulp server`
+This will create a connect server, you can then access this server via at http://localhost:9000/
+This will serve the component so you can test it in the browser
+
+##### `gulp watch`
+This will watch the ts directory and compile the bundle file on changes.
+This paired with the server and `./index.html` should allow for easy testing/development.
+
+##### `gulp build`
+This is the **key** task provided as it will build the whole library.
+This will build the `bundle` for the component.
+
+##### `gulp lint`
+This is currently not in use
+
+##### `gulp bundle`
+This will build the bundle
+
+##### `gulp bundle:dev`
+This will build the bundle in a `development` state
+
 
 ---
 
