@@ -41,7 +41,7 @@ This will add gulp tasks to build a library, it also exposes some configuration:
 
 var gulp = require('gulp');
 
-// configuration for the builder (this could be stored in external file/module like "build-config.js")
+// configuration for the builder (this could be stored in external file/module like "cu-build.js")
 var buildConfig = {
   srcGlob: 'src/**/*.js',
   bundleDir: 'bundle',
@@ -51,7 +51,7 @@ var buildConfig = {
   definitionFile: 'src/library.d.ts',
   bundleFile: 'src/bundle.js',
   serverPort: 9000
-}
+};
 
 require('cu-ui-build-tools').library(gulp, buildConfig);
 ```
