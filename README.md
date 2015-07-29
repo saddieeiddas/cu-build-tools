@@ -107,3 +107,14 @@ TODO
 
 This will be a builder for projects that contain many sub `libraries` and `components` and will provide auto type detection
 to allow building everything from one gulpfile.
+
+
+Publish Builder
+---------------
+
+TODO
+
+This will be a builder for the whole `ui`, it will download and install configured repositories and build them using each
+repositories configured `builder` it will provide a similar system to `multi` builder when it comes to building components.
+
+See https://github.com/saddieeiddas/cu-ui-builder
