@@ -43,15 +43,9 @@ var gulp = require('gulp');
 
 // configuration for the builder (this could be stored in external file/module like "cu-build.config.js")
 var buildConfig = {
-  buildType: 'library',
-  srcGlob: ['src/**/*.js', 'src/**/*.jsx'],
-  bundleDir: 'bundle',
-  libDir: 'lib',
-  libraryName: 'cu-ui-boilerplate-library',
-  libraryFile: 'src/library.js',
-  definitionFile: 'src/library.d.ts',
-  bundleFile: 'src/bundle.js',
-  serverPort: 9000
+  type: 'library',
+  path: __dirname,
+  name: 'cu-ui-boilerplate-library',
 };
 
 require('cu-ui-build-tools')(gulp, buildConfig);
@@ -103,12 +97,9 @@ var gulp = require('gulp');
 
 // configuration for the builder (this could be stored in external file/module like "cu-build.config.js")
 var buildConfig = {
-  buildType: 'component',
-  tsGlob: ['module/ts/**/*.ts', 'module/ts/**/*.tsx'],
-  bundleDir: 'module/js',
-  moduleName: 'cu-ui-boilerplate-component',
-  moduleFile: 'module/ts/module.ts',
-  serverPort: 9000
+  type: 'component',
+  path: __dirname,
+  name: 'cu-ui-boilerplate-component',
 };
 
 require('cu-ui-build-tools')(gulp, buildConfig);
