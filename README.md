@@ -119,7 +119,7 @@ This is an alias for `watch` and `server`
 
 ##### `gulp build`
 This is the **key** task provided as it will build the whole component.
-This will build the `bundle` for the component.
+This will build the `dist` directory for the component.
 
 
 ---
