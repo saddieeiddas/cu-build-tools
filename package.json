@@ -16,6 +16,7 @@
     "eslint": "0.24.1",
     "eslint-plugin-react": "3.0.0",
     "extend": "3.0.0",
+    "globby": "^2.1.0",
     "gulp-babel": "5.1.0",
     "gulp-connect": "2.2.0",
     "gulp-eslint": "0.15.0",
@@ -28,9 +29,12 @@
     "gulp-util": "3.0.6",
     "merge2": "^0.3.6",
     "minimist": "1.1.2",
+    "ntypescript": "^1.201508010031.1",
     "run-sequence": "1.1.2",
+    "through2": "^2.0.0",
     "tsify": "^0.11.4",
     "vinyl-buffer": "1.0.0",
-    "vinyl-source-stream": "1.1.0"
+    "vinyl-source-stream": "1.1.0",
+    "vinyl-transform": "^1.0.0"
   }
 }

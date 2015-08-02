@@ -95,7 +95,7 @@ This will add gulp tasks to build a component, it also exposes some configuratio
 
 var gulp = require('gulp');
 
-// configuration for the builder (this could be stored in external file/module like "cu-build.config.js")
+// should be stored in "cu-build.config.js")
 var buildConfig = {
   type: 'component',
   path: __dirname,
@@ -107,26 +107,19 @@ require('cu-ui-build-tools')(gulp, buildConfig);
 
 This will provide the following gulp tasks
 
-##### `gulp server`
+##### `gulp server --port 9000`
 This will create a connect server, you can then access this server via at http://localhost:9000/
 This will serve the component so you can test it in the browser
 
 ##### `gulp watch`
-This will watch the ts directory and compile the bundle file on changes.
-This paired with the server and `./index.html` should allow for easy testing/development.
+This will watch the src directory and rebuild the `dist` directory on changes
+
+##### `gulp watch-server`
+This is an alias for `watch` and `server`
 
 ##### `gulp build`
-This is the **key** task provided as it will build the whole library.
+This is the **key** task provided as it will build the whole component.
 This will build the `bundle` for the component.
-
-##### `gulp lint`
-This is currently not in use
-
-##### `gulp bundle`
-This will build the bundle
-
-##### `gulp bundle:dev`
-This will build the bundle in a `development` state
 
 
 ---
