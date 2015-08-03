@@ -6,4 +6,9 @@
 
 'use strict';
 
-module.exports = require('./lib/auto');
+module.exports.auto = require('./lib/auto');
+module.exports.builder = require('./lib/builder/builder');
+module.exports.util = {
+  config: require('./lib/util/config'),
+  prefix: require('./lib/util/prefix')
+};
