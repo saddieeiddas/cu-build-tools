@@ -8,6 +8,7 @@
 
 module.exports.auto = require('./lib/auto');
 module.exports.builder = require('./lib/builder/builder');
+module.exports.muulti = require('./lib/builder/multi');
 module.exports.util = {
   config: require('./lib/util/config'),
   prefix: require('./lib/util/prefix')
