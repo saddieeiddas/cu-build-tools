@@ -31,7 +31,7 @@ Installation
 ------------
 
 ```sh
-npm install https://github.com/saddieeiddas/cu-ui-build-tools.git --save-dev
+npm install git+https://github.com/saddieeiddas/cu-ui-build-tools.git --save-dev
 ```
 
 ---
