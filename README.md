@@ -1,4 +1,4 @@
-cu-ui-build-tools
+cu-build-tools
 =================
 
 > Tools to build Camelot Unchained UI libraries and components
@@ -10,8 +10,8 @@ This library provides multiple sets of `gulp` tasks which aid in building UI `co
 
 There are currently two different sets of tasks:
 
-- [`builder`](https://github.com/saddieeiddas/cu-ui-build-tools/blob/master/lib/builder/builder.js)
-- [`multi`](https://github.com/saddieeiddas/cu-ui-build-tools/blob/master/lib/builder/multi.js)
+- [`builder`](https://github.com/csegames/cu-build-tools/blob/master/lib/builder/builder.js)
+- [`multi`](https://github.com/csegames/cu-build-tools/blob/master/lib/builder/multi.js)
 
 The `builder` module provides `gulp` tasks for building individual components and libraries. It supports the following setups:
 
@@ -31,8 +31,10 @@ Installation
 ------------
 
 ```sh
-npm install git+https://github.com/saddieeiddas/cu-ui-build-tools.git --save-dev
+npm install git+https://github.com/csegames/cu-build-tools.git --save-dev
 ```
+
+> if you need to develop with your own fork or the mod squad fork, just update the url to point to the right repository
 
 ---
 
@@ -44,7 +46,7 @@ To utilise the build tools, you will need to create two files in the given direc
 **`cu-build.config.js`**
 
 ```js
-// override https://github.com/saddieeiddas/cu-ui-build-tools/blob/master/lib/util/config.js
+// override https://github.com/csegames/cu-build-tools/blob/master/lib/util/config.js
 module.exports = {
   type: 'component', // component, library, multi
   path: __dirname,
@@ -59,7 +61,7 @@ module.exports = {
 
 var gulp = require('gulp');
 var buildConfig = require('./cu-build.config.js');
-require('cu-ui-build-tools').auto(gulp, buildConfig);
+require('cu-build-tools').auto(gulp, buildConfig);
 ```
 
 ---

@@ -1,5 +1,5 @@
 {
-  "name": "cu-ui-build-tools",
+  "name": "cu-build-tools",
   "version": "1.0.0",
   "description": "",
   "license": "MPL-2.0",
@@ -7,6 +7,11 @@
   "contributors": [
     "saddieeiddas <saddie.eiddas@gmail.com>"
   ],
+  "homepage": "https://github.com/csegames/cu-build-tools",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/csegames/cu-build-tools.git"
+  },
   "dependencies": {
     "babel-eslint": "4.0.0",
     "browserify": "11.0.0",
