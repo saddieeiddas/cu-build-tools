@@ -39,8 +39,10 @@
     "ntypescript": "^1.201508010031.1",
     "q": "^1.4.1",
     "run-sequence": "1.1.2",
+    "through2": "^2.0.0",
     "time-require": "^0.1.2",
     "vinyl-buffer": "1.0.0",
-    "vinyl-source-stream": "1.1.0"
+    "vinyl-source-stream": "1.1.0",
+    "xmldom": "^0.1.19"
   }
 }
