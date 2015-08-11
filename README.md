@@ -30,7 +30,10 @@ The default configuration can be seen [here](https://github.com/saddieeiddas/cu-
 Installation
 ------------
 
+You will need Git on your path. One way to do this is to install [Github For Windows](https://windows.github.com/) and use the "Git Shell" shortcut in your start menu.
+
 ```sh
+npm install gulp -g
 npm install git+https://github.com/csegames/cu-build-tools.git --save-dev
 ```
 
