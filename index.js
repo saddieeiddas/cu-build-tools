@@ -4,12 +4,20 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-'use strict';
+import auto from './lib/auto';
+import builder from './lib/builder/builder';
+import multi from './lib/builder/multi';
+import loadConfig from './lib/util/loadConfig';
+import createPrefix from './lib/util/createPrefix';
 
-module.exports.auto = require('./lib/auto');
-module.exports.builder = require('./lib/builder/builder');
-module.exports.muulti = require('./lib/builder/multi');
-module.exports.util = {
-  config: require('./lib/util/config'),
-  prefix: require('./lib/util/prefix')
+const index = {
+  'auto': auto,
+  'builder': builder,
+  'multi': multi,
+  'util': {
+    'loadConfig': loadConfig,
+    'createPrefix': createPrefix,
+  },
 };
+
+export default index;
