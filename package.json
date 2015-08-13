@@ -5,7 +5,8 @@
   "license": "MPL-2.0",
   "main": "index.js",
   "contributors": [
-    "saddieeiddas <saddie.eiddas@gmail.com>"
+    "saddieeiddas <saddie.eiddas@gmail.com>",
+    "jcdickinson <jonathan@dickinsons.co.za>"
   ],
   "homepage": "https://github.com/csegames/cu-build-tools",
   "repository": {

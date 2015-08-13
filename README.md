@@ -50,21 +50,21 @@ To utilise the build tools, you will need to create two files in the given direc
 
 ```js
 // override https://github.com/csegames/cu-build-tools/blob/master/lib/util/config.js
-module.exports = {
+export default {
   type: 'component', // component, library, multi
   path: __dirname,
   name: 'component-one',
 };
 ```
 
-**`gulpfile.js`**
+**`gulpfile.babel.js`**
 
 ```js
-'use strict';
+import gulp from 'gulp';
+import buildConfig from './cu-build.config.js';
+import buildTools from 'cu-build-tools';
 
-var gulp = require('gulp');
-var buildConfig = require('./cu-build.config.js');
-require('cu-build-tools').auto(gulp, buildConfig);
+buildTools.auto(gulp, buildConfig);
 ```
 
 ---
