@@ -33,7 +33,7 @@ function builder(gulp, options) {
       gulpUtil.log(gulpUtil.colors.red('error:'), error.toString());
     },
   };
-  
+
   gulp.task('default', ['build']);
 
   gulp.task(prefix('watch-server'), [prefix('watch'), prefix('server')]);
