@@ -2,13 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 function createPrefix(prefix) {
-  return function (task) {
+  return (task) => {
     if (prefix.length > 0) {
       return prefix + task;
     }
@@ -16,6 +11,4 @@ function createPrefix(prefix) {
   };
 }
 
-exports["default"] = createPrefix;
-module.exports = exports["default"];
-//# sourceMappingURL=../util/createPrefix.js.map
+export default createPrefix;

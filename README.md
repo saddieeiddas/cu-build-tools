@@ -49,22 +49,40 @@ To utilise the build tools, you will need to create two files in the given direc
 **`cu-build.config.js`**
 
 ```js
-// override https://github.com/csegames/cu-build-tools/blob/master/lib/util/config.js
-export default {
-  type: 'component', // component, library, multi
+/**
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+ module.exports = {
+  type: 'library',
   path: __dirname,
-  name: 'component-one',
-};
+  name: 'cu-boilerplate-library',
+  publish: {
+    target: 'libs/cu-boilerplate-library'
+  },
+ }
+ 
 ```
 
-**`gulpfile.babel.js`**
+**`gulpfile.js`**
 
 ```js
-import gulp from 'gulp';
-import buildConfig from './cu-build.config.js';
-import buildTools from 'cu-build-tools';
+/**
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+ 'use strict';
+
+ var gulp = require('gulp');
+ var buildConfig = require('./cu-build.config.js');
+ var buildTools = require('cu-build-tools');
 
 buildTools.auto(gulp, buildConfig);
+
 ```
 
 ---

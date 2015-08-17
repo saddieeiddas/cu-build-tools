@@ -46,5 +46,8 @@
     "vinyl-buffer": "1.0.0",
     "vinyl-source-stream": "1.1.0",
     "xmldom": "^0.1.19"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0"
   }
 }

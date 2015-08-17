@@ -2,34 +2,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _path = require('path');
-
-var _path2 = _interopRequireDefault(_path);
-
-var _fs = require('fs');
-
-var _fs2 = _interopRequireDefault(_fs);
-
-var _extend = require('extend');
-
-var _extend2 = _interopRequireDefault(_extend);
-
-var _minimist = require('minimist');
-
-var _minimist2 = _interopRequireDefault(_minimist);
+import path from 'path';
+import fs from 'fs';
+import extend from 'extend';
+import minimist from 'minimist';
 
 function loadConfig(custom) {
-  var argv = (0, _minimist2['default'])(process.argv.slice(2));
+  const argv = minimist(process.argv.slice(2));
 
-  var config = {
+  const config = {
     'engine': null,
     'type': 'library',
     'task_prefix': '',
@@ -37,7 +18,7 @@ function loadConfig(custom) {
     'glob': {
       'js': ['src/js/**/*.js', 'src/js/**/*.jsx'],
       'ts': ['src/ts/**/*.ts', 'src/ts/**/*.tsx'],
-      'stylus': ['src/style/**/*.styl']
+      'stylus': ['src/style/**/*.styl'],
     },
     'dir': {
       'src': 'src',
@@ -46,11 +27,11 @@ function loadConfig(custom) {
       'lib': 'lib',
       'definitions': 'src/definitions',
       'publish': 'publish',
-      'ui': null
+      'ui': null,
     },
     'publish': {
       'target': null,
-      'target_path': null
+      'target_path': null,
     },
     'main_name': 'main',
     'bundle_name': null,
@@ -59,37 +40,38 @@ function loadConfig(custom) {
     'file': {
       'main': null,
       'definition': null,
-      'bundle': null
+      'bundle': null,
     },
     'server': {
       'root': null,
-      'port': 9000
+      'port': 9000,
     },
     'build': {
       'compress': null,
-      'vsgen': true
+      'vsgen': true,
     },
     'legacy': null,
     'exclude': [],
     'build_type': 'build',
-    'license': ['/* This Source Code Form is subject to the terms of the Mozilla Public', ' * License, v. 2.0. If a copy of the MPL was not distributed with this', ' * file, You can obtain one at http://mozilla.org/MPL/2.0/. */', ''].join('\n')
+    'license': [
+      '/* This Source Code Form is subject to the terms of the Mozilla Public',
+      ' * License, v. 2.0. If a copy of the MPL was not distributed with this',
+      ' * file, You can obtain one at http://mozilla.org/MPL/2.0/. */',
+      '',
+    ].join('\n'),
   };
 
-  function resolve(paths) {
-    var directory = arguments.length <= 1 || arguments[1] === undefined ? config.path : arguments[1];
-
+  function resolve(paths, directory = config.path) {
     if (Array.isArray(paths)) {
-      return paths.map(function (p) {
-        return _path2['default'].resolve(directory + '/' + p);
-      });
+      return paths.map((p) => path.resolve(directory + '/' + p));
     }
-    return _path2['default'].resolve(directory + '/' + paths);
+    return path.resolve(directory + '/' + paths);
   }
 
   if (!custom.processed) {
-    (0, _extend2['default'])(true, config, custom);
+    extend(true, config, custom);
 
-    config.path = _path2['default'].resolve(config.path);
+    config.path = path.resolve(config.path);
 
     config.glob.js = resolve(config.glob.js);
     config.glob.ts = resolve(config.glob.ts);
@@ -109,12 +91,12 @@ function loadConfig(custom) {
     }
 
     if (argv.publish && typeof argv.publish === 'string') {
-      config.dir.publish = _path2['default'].resolve(argv.publish);
+      config.dir.publish = path.resolve(argv.publish);
     } else if (argv.publish && typeof argv.publish === 'boolean' && (!custom.dir || !custom.dir.publish)) {
-      if (_fs2['default'].existsSync(_path2['default'].resolve(config.path + '/../cu-build.config.js'))) {
-        var parentConfig = require(_path2['default'].resolve(config.path + '/../cu-build.config.js'));
+      if (fs.existsSync(path.resolve(config.path + '/../cu-build.config.js'))) {
+        const parentConfig = require(path.resolve(config.path + '/../cu-build.config.js'));
         if (parentConfig.dir && parentConfig.dir.publish) {
-          config.dir.publish = _path2['default'].resolve(parentConfig.path + '/' + parentConfig.dir.publish);
+          config.dir.publish = path.resolve(parentConfig.path + '/' + parentConfig.dir.publish);
         }
       }
     }
@@ -125,7 +107,7 @@ function loadConfig(custom) {
       config.dir.ui = resolve(config.dir.ui);
     }
 
-    config.publish.target_path = _path2['default'].resolve(config.dir.publish + '/' + config.publish.target);
+    config.publish.target_path = path.resolve(config.dir.publish + '/' + config.publish.target);
 
     if (config.build_type === 'publish' || argv.publish) {
       config.dir.dist = config.publish.target_path;
@@ -143,6 +125,7 @@ function loadConfig(custom) {
     if (config.name === null) {
       config.name = config.type;
     }
+
 
     if (config.file.main === null) {
       config.file.main = resolve('/' + config.engine + '/' + config.main_name + '.' + config.engine, config.dir.src);
@@ -166,9 +149,9 @@ function loadConfig(custom) {
       config.file.bundle = resolve(config.file.bundle);
     }
 
-    config.bundle_name = _path2['default'].basename(config.file.bundle);
+    config.bundle_name = path.basename(config.file.bundle);
 
-    if (_fs2['default'].existsSync(config.file.main) === false) {
+    if (fs.existsSync(config.file.main) === false) {
       if (config.engine === 'js') {
         config.file.main = config.file.main.replace('.js', '.jsx');
       } else {
@@ -190,9 +173,7 @@ function loadConfig(custom) {
 
     config.exclude = resolve(config.exclude);
 
-    config.exclude = config.exclude.map(function (exclude) {
-      return '!' + exclude;
-    });
+    config.exclude = config.exclude.map((exclude) => '!' + exclude);
 
     if (argv.port) {
       config.server.port = argv.port;
@@ -213,6 +194,4 @@ function loadConfig(custom) {
   return custom;
 }
 
-exports['default'] = loadConfig;
-module.exports = exports['default'];
-//# sourceMappingURL=../util/loadConfig.js.map
+export default loadConfig;
