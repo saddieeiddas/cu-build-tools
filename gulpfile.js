@@ -4,10 +4,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
- 'use strict';
+'use strict';
 
- var gulp = require('gulp');
- var plugins = require('gulp-load-plugins')({
+var gulp = require('gulp');
+var plugins = require('gulp-load-plugins')({
   pattern: [
     'gulp-*',
     'gulp.*',
@@ -18,36 +18,51 @@
     'merge2',
   ],
 });
+var sequence = require('run-sequence').use(gulp);
 
-gulp.task('watch', function() {
+gulp.task('default', defaultTask);
+gulp.task('watch', watch);
+gulp.task('build', build);
+gulp.task('compile', compile);
+gulp.task('lint', lint);
+gulp.task('clean', clean);
+gulp.task('copy', copy);
+
+function defaultTask(cb) {
+  sequence(['lint', 'build'], 'copy', cb);
+}
+
+function watch() {
   return gulp.watch('./src/**/*.js', ['default']);
-});
+}
 
-gulp.task('default', ['lint', 'compile', 'copy']);
+function build(cb) {
+  sequence('clean', 'compile', cb);
+}
 
-gulp.task('compile', ['clean'], function() {
+function compile() {
   return gulp.src('./src/**/*.js', {base: './src'})
     .pipe(plugins.plumber())
-    .pipe(plugins.sourcemaps.init({'loadMaps': true}))
+    .pipe(plugins.sourcemaps.init({loadMaps: true}))
     .pipe(plugins.babel())
-    .pipe(plugins.sourcemaps.write('.'))
+    .pipe(plugins.sourcemaps.write())
     .pipe(gulp.dest('./lib'));
-});
+}
 
-gulp.task('lint', function() {
+function lint() {
   return gulp.src('./src/**/*.js')
     .pipe(plugins.eslint())
     .pipe(plugins.eslint.format());
-})
+}
 
-gulp.task('clean', function(cb) {
+function clean(cb) {
   plugins.del([
     './lib/**/*',
-    './lib'
+    './lib',
   ], cb);
-});
+}
 
-gulp.task('copy', function() {
+function copy() {
   return gulp.src(['./src/**/*', '!./src/**/*.js'], {base: './src'})
     .pipe(gulp.dest('./lib'));
-});
+}

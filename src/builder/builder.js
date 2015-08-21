@@ -1,165 +1,231 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
+/**
+ * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 
 import gulpLoadPlugins from 'gulp-load-plugins';
 import loadConfig from './../util/loadConfig';
-import createPrefix from './../util/createPrefix';
 import createSequence from 'run-sequence';
 import generateVSProj from './../util/generateVSProj';
+import typescript from 'typescript';
 import path from 'path';
-import gulpUtil from 'gulp-util';
-import ntypescript from 'ntypescript';
+import fs from 'fs';
+import tsd from 'tsd';
 
-function builder(gulp, options) {
-  const plugins = gulpLoadPlugins({
-    'pattern': [
-      'gulp-*',
-      'gulp.*',
-      'browserify',
-      'vinyl-source-stream',
-      'vinyl-buffer',
-      'del',
-      'merge2',
-    ],
-  });
+const plugins = gulpLoadPlugins({
+  pattern: [
+    'gulp-*',
+    'gulp.*',
+    'browserify',
+    'vinyl-source-stream',
+    'vinyl-buffer',
+    'del',
+    'merge2',
+    'prettyjson',
+    'indent-string',
+    'dts-bundle',
+  ],
+});
+const plumberOpts = {
+  errorHandler(error) {
+    plugins.util.log(plugins.util.colors.red('error:'), error.toString());
+  },
+};
 
+export default function(gulp, options) {
   const config = loadConfig(options);
-  const prefix = createPrefix(config.task_prefix);
   const sequence = createSequence.use(gulp);
 
-  const plumberOpts = {
-    errorHandler(error) {
-      gulpUtil.log(gulpUtil.colors.red('error:'), error.toString());
-    },
-  };
+  /**
+   * Debug Build Configuration
+   */
+  function debugConfig(cb) {
+    plugins.util.log('Build Configuration\n' + plugins.indentString(plugins.prettyjson.render(config, {}), ' ', 11));
+    cb();
+  }
 
-  gulp.task('default', ['build']);
-
-  gulp.task(prefix('watch-server'), [prefix('watch'), prefix('server')]);
-
-  gulp.task(prefix('server'), () => {
+  /**
+   * Run Development Web Server
+   */
+  function server() {
     plugins.util.log('Starting Server In: ' + config.server.root);
     plugins.connect.server({
-      'root': config.server.root,
-      'port': config.server.port,
+      root: config.server.root,
+      port: config.server.port,
     });
-  });
+  }
 
-  gulp.task(prefix('watch'), [prefix('build')], () =>
-    gulp.watch([config.dir.src + '/**/*'], [prefix('build')])
-  );
-
-  gulp.task(prefix('build'), (cb) => sequence(
-    prefix('clean'),
-    prefix('lint'),
-    prefix('compile'),
-    [
-      'vsgen',
-      prefix('bundle'),
-      prefix('stylus'),
-      prefix('definitions'),
-      prefix('copy'),
-    ],
-    prefix('clean:tmp'),
-    cb
-  ));
-
-  gulp.task(prefix('clean'), [prefix('clean:dist'), prefix('clean:tmp'), prefix('clean:lib')]);
-
-  gulp.task(prefix('clean:dist'), (cb) => plugins.del([
-    config.dir.dist + '/**/*',
-    config.dir.dist,
-  ], {'force': true}, cb));
-
-  gulp.task(prefix('clean:tmp'), (cb) => plugins.del([
-    config.dir.tmp + '/**/*',
-    config.dir.tmp,
-  ], {'force': true}, cb));
-
-  gulp.task(prefix('clean:lib'), (cb) => plugins.del([
-    config.dir.lib + '/**/*',
-    config.dir.lib,
-  ], {'force': true}, cb));
-
-  gulp.task(prefix('lint'), (cb) => {
-    if (config.engine === 'js') {
-      return gulp.src(config.glob.js)
-        .pipe(plugins.eslint())
-        .pipe(plugins.eslint.format());
+  /**
+   * Clean Library Directory
+   */
+  function cleanLib(cb) {
+    if (config.lib) {
+      plugins.del([`${config.lib.dest}/**/*`, config.lib.dest], {force: true}, cb);
+    } else {
+      cb();
     }
-    cb();
-  });
+  }
 
-  gulp.task(prefix('stylus'), () =>
-    gulp.src(config.glob.stylus)
+  /**
+   * Clean Bundle Directory
+   */
+  function cleanBundle(cb) {
+    if (config.bundle) {
+      plugins.del([`${config.bundle.dest}/**/*`, config.bundle.dest], {force: true}, cb);
+    } else {
+      cb();
+    }
+  }
+
+  /**
+   * Clean Temporary Directory
+   */
+  function cleanTmp(cb) {
+    plugins.del([config.tmp + '/**/*', config.tmp], {force: true}, cb);
+  }
+
+  /**
+   * Compile ES6
+   */
+  function compileJavascript() {
+    const jsStream = gulp.src(config.glob.js, {base: config.src})
+      .pipe(plugins.plumber(plumberOpts))
+      .pipe(plugins.sourcemaps.init({loadMaps: true}))
+      .pipe(plugins.babel())
+      .pipe(plugins.sourcemaps.write({sourceRoot: '../', includeContent: true}))
+      .pipe(gulp.dest(config.tmp));
+    return plugins.merge2([jsStream]);
+  }
+
+  /**
+   * Compile TypeScript
+   */
+  function compileTypeScript() {
+    const tsProject = plugins.typescript.createProject('tsconfig.json', {
+      sortOutput: true,
+      typescript: typescript,
+      declarationFiles: true,
+    });
+
+    const tsResult = gulp.src(config.glob.ts, {base: config.src})
+      .pipe(plugins.plumber(plumberOpts))
+      .pipe(plugins.sourcemaps.init({loadMaps: true}))
+      .pipe(plugins.typescript(tsProject));
+
+    const tsStream = tsResult.js
+      .pipe(plugins.plumber(plumberOpts))
+      .pipe(plugins.sourcemaps.write({sourceRoot: '../', includeContent: true})) // write maps before babel (ugly hack)
+      .pipe(plugins.sourcemaps.init({loadMaps: true}))
+      .pipe(plugins.babel())
+      .pipe(plugins.sourcemaps.write({sourceRoot: '../', includeContent: true}))
+      .pipe(gulp.dest(config.tmp));
+
+    const dtsStream = tsResult.dts
+      .pipe(plugins.plumber(plumberOpts))
+      .pipe(plugins.replace(`../${config.src}`, `../../${config.src}`)) // fixes path to src
+      .pipe(gulp.dest(config.tmp + '/definitions'));
+
+    return plugins.merge2([tsStream, dtsStream]);
+  }
+
+  /**
+   * Bundle the TypeScript Definitions into Module Definition
+   */
+  function compileDts(cb) {
+    let main = false;
+    let out = false;
+    if (fs.existsSync(`${config.tmp}/definitions/${config.main_name}.d.ts`)) {
+      main = `${config.tmp}/definitions/${config.main_name}.d.ts`;
+      out = `${config.tmp}/definitions/${config.name}.d.ts`;
+    } else if (fs.existsSync(`${config.tmp}/definitions/ts/${config.main_name}.d.ts`)) {
+      main = `${config.tmp}/definitions/ts/${config.main_name}.d.ts`;
+      out = `${config.tmp}/definitions/ts/${config.name}.d.ts`;
+    }
+    if (!main) {
+      cb();
+    } else {
+      plugins.dtsBundle.bundle({
+        name: config.name,
+        main: main,
+      });
+      return gulp.src(out)
+        .pipe(plugins.plumber(plumberOpts))
+        .pipe(plugins.rename(`${config.name}.d.ts`))
+        .pipe(gulp.dest(config.tmp));
+    }
+  }
+
+  /**
+   * Compile Stylus
+   */
+  function compileStylus() {
+    return gulp.src(config.glob.stylus)
       .pipe(plugins.plumber(plumberOpts))
       .pipe(plugins.sourcemaps.init())
       .pipe(plugins.stylus())
-      .pipe(plugins.sourcemaps.write('.'))
-      .pipe(gulp.dest(config.dir.dist + '/css'))
-  );
+      .pipe(plugins.sourcemaps.write({sourceRoot: '../', includeContent: true}))
+      .pipe(gulp.dest(config.tmp));
+  }
 
-  gulp.task(prefix('compile'), () => {
-    if (config.engine === 'js') {
-      return gulp.src(config.glob.js)
-        .pipe(plugins.plumber(plumberOpts))
-        .pipe(plugins.sourcemaps.init({'loadMaps': true}))
-        .pipe(plugins.babel())
-        .pipe(plugins.sourcemaps.write({'sourceRoot': '../', 'includeContent': true}))
-        .pipe(gulp.dest(config.dir.lib));
-    }
+  /**
+   * Compile ES6, TypeScript, DTS and Stylus to Temporary Directory
+   */
+  function compile(cb) {
+    return sequence('clean:tmp', 'compile:before', ['compile:js', 'compile:ts', 'compile:stylus'], 'compile:dts', 'compile:after', cb);
+  }
 
-    const result = gulp.src(config.glob.ts)
-      .pipe(plugins.plumber(plumberOpts))
-      .pipe(plugins.sourcemaps.init({'loadMaps': true}))
-      .pipe(plugins.typescript({
-        'declarationFiles': true,
-        'noExternalResolve': false,
-        'module': 'commonjs',
-        'jsx': 'react',
-        'typescript': ntypescript,
-      }));
-
-    return plugins.merge2([
-      result.js.pipe(plugins.sourcemaps.write({'sourceRoot': '../', 'includeContent': true})).pipe(gulp.dest(config.dir.tmp)),
-    ]);
-  });
-
-  gulp.task('vsgen', (cb) => {
-    if (config.build.vsgen) {
-      let all = [];
-      for (const p in config.glob) {
-        if (config.glob.hasOwnProperty(p)) {
-          all = all.concat(config.glob[p]);
-        }
-      }
-
-      let proj = config.proj_name || config.name;
-      const ext = path.extname(proj);
-      if (!ext || ext === '') {
-        proj += '.csproj';
-      }
-      proj = path.join(config.path, proj);
-
-      return gulp.src(all, {'base': config.path})
-        .pipe(generateVSProj(proj))
-        .pipe(plugins.plumber(plumberOpts));
-    }
-    cb();
-  });
-
-  function bundle(shouldMinify, cb) {
-    let entry = config.main_name + '.js';
-    if (config.engine === 'js') {
-      entry = config.dir.lib + '/' + config.bundle_name.replace('.jsx', '.js');
+  /**
+   * Copy Compiled JS/CSS/Other Files to Library Directory
+   */
+  function libraryExec(cb) {
+    if (config.lib === false) {
+      cb();
     } else {
-      entry = config.dir.tmp + '/' + config.main_name + '.js';
-    }
+      const streams = [];
 
+      const jsStream = gulp.src(`${config.tmp}/**/*.js`, {base: `${config.tmp}/${config.lib.base}`})
+        .pipe(plugins.plumber(plumberOpts))
+        .pipe(gulp.dest(config.lib.dest));
+      streams.push(jsStream);
+
+      const dtsStream = gulp.src(`${config.tmp}/*.d.ts`)
+        .pipe(plugins.plumber(plumberOpts))
+        .pipe(gulp.dest(config.lib.dest));
+      streams.push(dtsStream);
+
+      if (config.lib.stylus) {
+        const styleStream = gulp.src(`${config.tmp}/**/*.css`, {base: `${config.tmp}/${config.lib.stylus_base}`})
+          .pipe(plugins.plumber(plumberOpts))
+          .pipe(gulp.dest(`${config.lib.dest}/${config.lib.stylus_dest}`));
+        streams.push(styleStream);
+      }
+
+      if (config.lib.copy) {
+        const copyStream = gulp.src(config.lib.copy, {base: `${config.src}/${config.lib.copy_base}`, nodir: true})
+          .pipe(plugins.plumber(plumberOpts))
+          .pipe(gulp.dest(`${config.lib.dest}`));
+        streams.push(copyStream);
+      }
+
+      return plugins.merge2(streams);
+    }
+  }
+
+  /**
+   * Run all Library Tasks
+   */
+  function library(cb) {
+    return sequence('clean:lib', 'library:before', 'library:exec', 'library:after', cb);
+  }
+
+  /**
+   * Core Browserify Bundle Process
+   */
+  function browserifyCore(shouldMinify, cb) {
     const b = plugins.browserify({
-      'entries': entry,
-      'debug': true,
+      entries: `${config.tmp}/${config.bundle.main_in}`,
+      debug: true,
     });
 
     return b.bundle()
@@ -167,55 +233,237 @@ function builder(gulp, options) {
         plugins.util.log(plugins.util.colors.red(err.message));
         cb();
       })
-      .pipe(plugins.vinylSourceStream(config.name + (shouldMinify ? '.min' : '') + '.js'))
+      .pipe(plugins.vinylSourceStream(path.basename(config.bundle.main_out, '.js') + (shouldMinify ? '.min' : '') + '.js'))
       .pipe(plugins.vinylBuffer())
-      .pipe(plugins.sourcemaps.init({'loadMaps': true}))
+      .pipe(plugins.sourcemaps.init({loadMaps: true}))
       .pipe(plugins.if(shouldMinify, plugins.uglify()))
       .pipe(plugins.if(shouldMinify, plugins.header(config.license)))
-      .pipe(plugins.sourcemaps.write('.', {'sourceRoot': '../../', 'includeContent': true}))
-      .pipe(gulp.dest(config.dir.dist + '/js'));
+      .pipe(plugins.sourcemaps.write('.', {sourceRoot: '../../', includeContent: true}))
+      .pipe(gulp.dest(`${config.bundle.dest}/${path.dirname(config.bundle.main_out)}`));
   }
 
-  gulp.task(prefix('bundle'), [prefix('bundle:prod'), prefix('bundle:dev')]);
-
-  gulp.task(prefix('bundle:prod'), (cb) => {
+  /**
+   * Compile Browserify Bundle's
+   */
+  function browserify(cb) {
+    const streams = [];
+    streams.push(browserifyCore(false, cb));
     if (config.build.compress) {
-      return bundle(true, cb);
+      streams.push(browserifyCore(true, cb));
     }
-    cb();
-  });
+    return plugins.merge2(streams);
+  }
 
-  gulp.task(prefix('bundle:dev'), (cb) =>
-    bundle(false, cb)
-  );
+  /**
+   * Compile Bundle
+   */
+  function bundleExec(cb) {
+    if (config.bundle === false) {
+      cb();
+    } else {
+      const streams = [];
 
-  gulp.task(prefix('definitions'), (cb) => {
-    if (config.engine === 'js') {
-      return gulp.src(config.dir.definitions + '/**/*.d.ts')
-        .pipe(plugins.plumber(plumberOpts))
-        .pipe(gulp.dest(config.dir.lib));
+      const browserifyStreams = browserify(cb);
+      streams.push(browserifyStreams);
+
+      if (config.bundle.stylus) {
+        const styleStream = gulp.src(`${config.tmp}/**/*.css`, {base: `${config.tmp}/${config.bundle.stylus_base}`})
+            .pipe(plugins.plumber(plumberOpts))
+            .pipe(gulp.dest(`${config.bundle.dest}/${config.bundle.stylus_dest}`));
+        streams.push(styleStream);
+      }
+
+      if (config.bundle.copy) {
+        const copyStream = gulp.src(config.bundle.copy, {base: `${config.src}/${config.bundle.copy_base}`, nodir: true})
+            .pipe(plugins.plumber(plumberOpts))
+            .pipe(gulp.dest(`${config.bundle.dest}`));
+        streams.push(copyStream);
+      }
+
+      const uiStream = gulp.src(config.src + '/*.ui')
+        .pipe(gulp.dest(`${config.bundle.dest}`));
+      streams.push(uiStream);
+
+      return plugins.merge2(streams);
     }
+  }
+
+  /**
+   * Run all Bundle Tasks
+   */
+  function bundle(cb) {
+    return sequence('clean:bundle', 'bundle:before', 'bundle:exec', 'bundle:after', cb);
+  }
+
+  /**
+   * Build Everything
+   */
+  function build(cb) {
+    return sequence('build:before', 'compile', ['library', 'bundle'], 'clean:tmp', 'build:after', cb);
+  }
+
+  /**
+   * Publish Everything
+   */
+  function publish(cb) {
+    config.build.publish = true;
+    if (config.bundle) {
+      config.bundle.dest = config.publish.dest + '/' + config.publish.target;
+    }
+    return sequence('publish:before', 'compile', ['bundle'], 'clean:tmp', 'publish:after', cb);
+  }
+
+  /**
+   * Install NPM Packages
+   */
+  function installNpm(cb) {
+    if (config.build.install_npm === false) {
+      cb();
+    }  else {
+      return gulp.src('package.json')
+        .pipe(plugins.debug({title: 'installing:'}))
+        .pipe(plugins.install({production: true}));
+    }
+  }
+
+  /**
+   * Install TSD
+   */
+  function installTsd(cb) {
+    if (config.build.install_tsd === false) {
+      cb();
+    }  else {
+      const api = tsd.getAPI('tsd.json', true);
+      api.readConfig('tsd.json', true).then(() => {
+        const opts = tsd.Options.fromJSON({});
+        opts.overwriteFiles = true;
+        opts.resolveDependencies = true;
+        opts.saveToConfig = true;
+        return api.reinstall(opts).then(() => {
+          return api.link('').then(() => {
+            const tsdConfig = JSON.parse(fs.readFileSync('tsd.json'));
+            if (fs.existsSync(tsdConfig.bundle) === false) {
+              fs.writeFile(tsdConfig.bundle, '');
+            }
+          });
+        });
+      }).finally(() => {
+        cb();
+      });
+    }
+  }
+
+  /**
+   * Generate VS Project
+   */
+  function installVs(cb) {
+    if (config.build.vsgen === false) {
+      cb();
+    }  else {
+      const all = [
+        config.src + '/**/*',
+        '!' + config.src + '/tsd/**/*',
+      ];
+      let proj = config.proj_name || config.name;
+      const ext = path.extname(proj);
+      if (!ext || ext === '') {
+        proj += '.csproj';
+      }
+      proj = path.join(config.path, proj);
+      return gulp.src(all, {base: config.path})
+        .pipe(generateVSProj(proj))
+        .pipe(plugins.plumber(plumberOpts));
+    }
+  }
+
+  /**
+   * Install
+   */
+  function install(cb) {
+    return sequence('install:before', 'install:npm', ['install:tsd', 'install:vs'], 'install:after', cb);
+  }
+
+  /**
+   * Watch
+   */
+  function watch() {
+    let buildTask = 'build';
+    if (config.build.publish) {
+      buildTask = 'publish';
+    }
+    return gulp.watch([config.src + '/**/*'], [buildTask]);
+  }
+
+  /**
+   * Default Task
+   */
+  function defaultTask(cb) {
+    let buildTask = 'build';
+    if (config.build.publish) {
+      buildTask = 'publish';
+    }
+    let watchTask = 'watch';
+    if (config.build.server) {
+      watchTask = ['watch', 'server'];
+    }
+    return sequence('install', buildTask, watchTask, cb);
+  }
+
+  /**
+   * Empty Task to provide a hook for custom gulp tasks
+   */
+  function emptyTask(cb) {
     cb();
-  });
+  }
 
-  gulp.task(prefix('copy'), [prefix('copy:ui'), prefix('copy:assets')]);
+  /**
+   * Register Gulp Tasks
+   */
+  gulp.task('default', defaultTask);
 
-  gulp.task(prefix('copy:ui'), () => {
-    const target = config.build_type === 'publish'
-      ? config.dir.publish
-      : config.dir.dist;
-    return gulp.src([
-      config.dir.src + '/*.ui',
-    ], {'base': config.dir.src}).pipe(gulp.dest(target));
-  });
+  gulp.task('watch', watch);
+  gulp.task('server', server);
 
-  gulp.task(prefix('copy:assets'), () =>
-    gulp.src([
-      config.dir.src + '/images/**/*',
-      config.dir.src + '/audio/**/*',
-      config.dir.src + '/**/*.html',
-    ], {'base': config.dir.src}).pipe(gulp.dest(config.dir.dist))
-  );
+  gulp.task('debug', ['debug:config']);
+  gulp.task('debug:config', debugConfig);
+
+  gulp.task('clean', ['clean:lib', 'clean:bundle', 'clean:tmp']);
+  gulp.task('clean:lib', cleanLib);
+  gulp.task('clean:bundle', cleanBundle);
+  gulp.task('clean:tmp', cleanTmp);
+
+  gulp.task('compile', compile);
+  gulp.task('compile:before', emptyTask);
+  gulp.task('compile:js', compileJavascript);
+  gulp.task('compile:ts', compileTypeScript);
+  gulp.task('compile:dts', compileDts);
+  gulp.task('compile:stylus', compileStylus);
+  gulp.task('compile:after', emptyTask);
+
+  gulp.task('library', library);
+  gulp.task('library:before', emptyTask);
+  gulp.task('library:exec', libraryExec);
+  gulp.task('library:after', emptyTask);
+
+  gulp.task('bundle', bundle);
+  gulp.task('bundle:before', emptyTask);
+  gulp.task('bundle:exec', bundleExec);
+  gulp.task('bundle:after', emptyTask);
+
+  gulp.task('build:before', emptyTask);
+  gulp.task('build', build);
+  gulp.task('build:after', emptyTask);
+
+  gulp.task('publish:before', emptyTask);
+  gulp.task('publish', publish);
+  gulp.task('publish:after', emptyTask);
+
+  gulp.task('install', install);
+  gulp.task('install:before', emptyTask);
+  gulp.task('install:npm', installNpm);
+  gulp.task('install:tsd', installTsd);
+  gulp.task('install:vs', installVs);
+  gulp.task('install:after', emptyTask);
+
+  return config;
 }
-
-export default builder;

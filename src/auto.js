@@ -7,19 +7,11 @@
 import builder from './builder/builder';
 import multi from './builder/multi';
 
-function auto(gulp, options) {
+export default function(gulp, options) {
   switch (options.type || null) {
-  case 'library':
-    return builder(gulp, options);
-  case 'component':
-    return builder(gulp, options);
   case 'multi':
     return multi(gulp, options);
-  case 'publish':
-    throw new Error('"publish" not implemented');
   default:
-    throw new Error('invalid "buildType"');
+    return builder(gulp, options);
   }
 }
-
-export default auto;

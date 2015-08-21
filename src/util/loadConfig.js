@@ -1,197 +1,248 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
+/**
+ * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 
 import path from 'path';
 import fs from 'fs';
 import extend from 'extend';
 import minimist from 'minimist';
+import is from 'is_js';
+
+const cuBuildConfig = 'cu-build.config.js';
 
 function loadConfig(custom) {
-  const argv = minimist(process.argv.slice(2));
+  let config = {};
+  if (is.falsy(custom.processed)) {
+    const argv = minimist(process.argv.slice(2));
+    const defaults = {
+      glob: {
+        ts: ['**/*+(.ts|.tsx)'],
+        js: ['**/*+(.js|.jsx)'],
+        stylus: ['**/*.styl'],
+      },
+      lib: {
+        dest: 'lib',
+        base: true,
+        stylus: false,
+        stylus_base: 'style',
+        stylus_dest: '',
+        copy: false,
+        copy_base: '',
+      },
+      bundle: {
+        dest: 'dist',
+        main_in: true, // the tmp in path
+        main_out: true, // the tmp out path
+        stylus: true,
+        stylus_base: 'style',
+        stylus_dest: 'css',
+        copy: true,
+        copy_base: '',
+      },
+      config: {
+        type: null,
+        path: '',
+        src: 'src',
+        tmp: 'tmp',
+        name: null,
+        main_name: 'main',
+        proj_name: null,
+        server: {
+          root: null,
+          port: 9000,
+        },
+        build: {
+          compress: false,
+          vsgen: true,
+          install_npm: true,
+          install_tsd: true,
+          publish: false,
+          server: false,
+        },
+        publish: {
+          dest: 'publish',
+          target: true,
+        },
+        license: [
+          '/*',
+          ' * This Source Code Form is subject to the terms of the Mozilla Public',
+          ' * License, v. 2.0. If a copy of the MPL was not distributed with this',
+          ' * file, You can obtain one at http://mozilla.org/MPL/2.0/.',
+          '*/',
+          '',
+        ].join('\n'),
+      },
+    };
 
-  const config = {
-    'engine': null,
-    'type': 'library',
-    'task_prefix': '',
-    'path': './',
-    'glob': {
-      'js': ['src/js/**/*.js', 'src/js/**/*.jsx'],
-      'ts': ['src/ts/**/*.ts', 'src/ts/**/*.tsx'],
-      'stylus': ['src/style/**/*.styl'],
-    },
-    'dir': {
-      'src': 'src',
-      'dist': 'dist',
-      'tmp': 'tmp',
-      'lib': 'lib',
-      'definitions': 'src/definitions',
-      'publish': 'publish',
-      'ui': null,
-    },
-    'publish': {
-      'target': null,
-      'target_path': null,
-    },
-    'main_name': 'main',
-    'bundle_name': null,
-    'proj_name': null,
-    'name': null,
-    'file': {
-      'main': null,
-      'definition': null,
-      'bundle': null,
-    },
-    'server': {
-      'root': null,
-      'port': 9000,
-    },
-    'build': {
-      'compress': null,
-      'vsgen': true,
-    },
-    'legacy': null,
-    'exclude': [],
-    'build_type': 'build',
-    'license': [
-      '/* This Source Code Form is subject to the terms of the Mozilla Public',
-      ' * License, v. 2.0. If a copy of the MPL was not distributed with this',
-      ' * file, You can obtain one at http://mozilla.org/MPL/2.0/. */',
-      '',
-    ].join('\n'),
-  };
+    config = extend(true, config, defaults.config, custom);
 
-  function resolve(paths, directory = config.path) {
-    if (Array.isArray(paths)) {
-      return paths.map((p) => path.resolve(directory + '/' + p));
+    // determine library build it its undefined
+    if (is.undefined(config.lib)) {
+      config.lib = config.type === 'library';
     }
-    return path.resolve(directory + '/' + paths);
-  }
-
-  if (!custom.processed) {
-    extend(true, config, custom);
-
-    config.path = path.resolve(config.path);
-
-    config.glob.js = resolve(config.glob.js);
-    config.glob.ts = resolve(config.glob.ts);
-    config.glob.stylus = resolve(config.glob.stylus);
-
-    config.dir.src = resolve(config.dir.src);
-    config.dir.dist = resolve(config.dir.dist);
-    config.dir.tmp = resolve(config.dir.tmp);
-    config.dir.lib = resolve(config.dir.lib);
-    config.dir.definitions = resolve(config.dir.definitions);
-    if (config.build_type === 'build') {
-      config.dir.publish = resolve(config.dir.publish);
+    // merge lib if its an object
+    if (is.object(config.lib)) {
+      config.lib = extend(true, {}, defaults.lib, config.lib);
+    }
+    // set lib to default if true
+    if (config.lib === true) {
+      config.lib = extend(true, {}, defaults.lib);
+    }
+    // determine base if its not set
+    if (is.truthy(config.lib) && config.lib.base === true) {
+      if (fs.existsSync(`${config.path}/${config.src}/ts/`)) {
+        config.lib.base = 'ts';
+      } else if (fs.existsSync(`${config.path}/${config.src}/js/`)) {
+        config.lib.base = 'js';
+      } else {
+        config.lib.base = '';
+      }
     }
 
-    if (config.publish.target === null) {
-      config.publish.target = config.name;
+    // set bundle to true if undefined
+    if (is.undefined(config.bundle)) {
+      config.bundle = true;
     }
+    // merge bundle if its an object
+    if (is.object(config.bundle)) {
+      config.bundle = extend(true, {}, defaults.bundle, config.bundle);
+    }
+    // set bundle to default if true
+    if (config.bundle === true) {
+      config.bundle = extend(true, {}, defaults.bundle);
+    }
+    // determine the main bundle file
+    if (is.truthy(config.bundle.main_in)) {
+      const mainFiles = [
+        `${config.main_name}-bundle.ts`,
+        `${config.main_name}-bundle.tsx`,
+        `ts/${config.main_name}-bundle.ts`,
+        `ts/${config.main_name}-bundle.tsx`,
+        `${config.main_name}.ts`,
+        `${config.main_name}.tsx`,
+        `ts/${config.main_name}.ts`,
+        `ts/${config.main_name}.tsx`,
+        `${config.main_name}-bundle.js`,
+        `${config.main_name}-bundle.jsx`,
+        `js/${config.main_name}-bundle.js`,
+        `js/${config.main_name}-bundle.jsx`,
+        `${config.main_name}.js`,
+        `${config.main_name}.jsx`,
+        `js/${config.main_name}.js`,
+        `js/${config.main_name}.jsx`,
 
-    if (argv.publish && typeof argv.publish === 'string') {
-      config.dir.publish = path.resolve(argv.publish);
-    } else if (argv.publish && typeof argv.publish === 'boolean' && (!custom.dir || !custom.dir.publish)) {
-      if (fs.existsSync(path.resolve(config.path + '/../cu-build.config.js'))) {
-        const parentConfig = require(path.resolve(config.path + '/../cu-build.config.js'));
-        if (parentConfig.dir && parentConfig.dir.publish) {
-          config.dir.publish = path.resolve(parentConfig.path + '/' + parentConfig.dir.publish);
+      ];
+      mainFiles.some((file) => {
+        if (fs.existsSync(`${config.path}/${config.src}/${file}`)) {
+          config.bundle.main_in = file.replace('.tsx', '.js').replace('.ts', '.js').replace('.jsx', '.js');
+          if (is.truthy(config.bundle.main_out)) {
+            config.bundle.main_out = config.bundle.main_in.replace('ts/', 'js/');
+            config.bundle.main_out = config.bundle.main_out.replace(path.basename(config.bundle.main_out, '.js'), config.name);
+          }
+          return true;
         }
-      }
+        return false;
+      });
     }
-
-    if (config.dir.ui === null) {
-      config.dir.ui = config.dir.publish;
-    } else {
-      config.dir.ui = resolve(config.dir.ui);
-    }
-
-    config.publish.target_path = path.resolve(config.dir.publish + '/' + config.publish.target);
-
-    if (config.build_type === 'publish' || argv.publish) {
-      config.dir.dist = config.publish.target_path;
-      config.server.root = config.publish.target_path;
-    }
-
-    if (config.engine === null) {
-      if (config.type === 'component') {
-        config.engine = 'ts';
-      } else {
-        config.engine = 'js';
-      }
-    }
-
-    if (config.name === null) {
-      config.name = config.type;
-    }
-
-
-    if (config.file.main === null) {
-      config.file.main = resolve('/' + config.engine + '/' + config.main_name + '.' + config.engine, config.dir.src);
-    } else {
-      config.file.main = resolve(config.file.main);
-    }
-
-    if (config.file.definition === null) {
-      config.file.definition = resolve('/' + config.main_name + '.d.ts', config.dir.definitions);
-    } else {
-      config.file.definition = resolve(config.file.definition);
-    }
-
-    if (config.file.bundle === null) {
-      if (config.type === 'library') {
-        config.file.bundle = resolve('/' + config.engine + '/' + config.main_name + '-bundle.' + config.engine, config.dir.src);
-      } else {
-        config.file.bundle = resolve('/' + config.engine + '/' + config.main_name + '.' + config.engine, config.dir.src);
-      }
-    } else {
-      config.file.bundle = resolve(config.file.bundle);
-    }
-
-    config.bundle_name = path.basename(config.file.bundle);
-
-    if (fs.existsSync(config.file.main) === false) {
-      if (config.engine === 'js') {
-        config.file.main = config.file.main.replace('.js', '.jsx');
-      } else {
-        config.file.main = config.file.main.replace('.ts', '.tsx');
-      }
-    }
-
-    if (config.server.root === null) {
-      if (config.type === 'library') {
-        config.server.root = './';
-      } else {
-        config.server.root = 'dist';
-      }
-    }
-
-    if (config.type === 'library') {
-      config.build.compress = true;
-    }
-
-    config.exclude = resolve(config.exclude);
-
-    config.exclude = config.exclude.map((exclude) => '!' + exclude);
 
     if (argv.port) {
       config.server.port = argv.port;
     }
 
-    if (argv.publish) {
-      config.build_type = 'publish';
+    if (is.not.undefined(argv.publish)) {
+      config.build.publish = !!argv.publish;
+    }
+
+
+    if (is.not.undefined(argv.server)) {
+      config.build.server = !!argv.server;
+    }
+
+    if (is.not.undefined(argv['install-npm'])) {
+      config.build.install_npm = argv['install-npm'];
+    }
+
+    if (is.not.undefined(argv['install-tsd'])) {
+      config.build.install_tsd = argv['install-tsd'];
+    }
+
+    if (is.not.undefined(argv.install)) {
+      config.build.install_npm = argv.install;
+      config.build.install_npm = argv.install;
+    }
+
+    // look for multi build, publish configuration
+    if (fs.existsSync(`../${cuBuildConfig}`)) {
+      const publishConfig = require(`${config.path}/../${cuBuildConfig}`);
+      config.publish.dest =  path.relative(config.path, `${publishConfig.path}/${publishConfig.publish.dest}`);
+    } else if (fs.existsSync(`../../${cuBuildConfig}`)) {
+      const publishConfig = require(`${config.path}/../../${cuBuildConfig}`);
+      config.publish.dest =  path.relative(config.path, `${publishConfig.path}/${publishConfig.publish.dest}`);
+    }
+    // make sure path is no more than 3 levels higher (as we will need to use force)
+    // this will allow publish directory to be one level higher that the top multi project
+    if (config.publish.dest.indexOf('../../../../') === 0 || config.publish.dest.indexOf('..\\..\\..\\..\\') === 0) {
+      config.publish.dest = 'publish';
+    }
+
+    // work out target within publish dest
+    if (config.publish.target === true) {
+      if (config.type === 'library') {
+        config.publish.target = `lib/${config.name}`;
+      } else {
+        config.publish.target = config.name;
+      }
+    }
+
+    // map bundle dest to publish if enabled
+    if (config.build.publish && config.bundle) {
+      config.bundle.dest = config.publish.dest + '/' + config.publish.target;
+    }
+
+    if (config.server.root === null) {
+      if (config.type === 'library' && config.build.publish === false) {
+        config.server.root = config.path;
+      } else {
+        config.server.root = config.bundle.dest;
+      }
+    }
+    config.server.root = path.resolve(`${config.path}/${config.server.root}`);
+
+    if (config.type === 'library') {
+      config.build.compress = true;
     }
 
     if (argv.vsgen === 'false') {
       config.build.vsgen = false;
     }
 
-    config.processed = true;
+    config.glob = defaults.glob;
 
-    return config;
+    config.glob.ts = config.glob.ts.map((p) => {
+      return `${config.src}/${p}`;
+    });
+
+    config.glob.js = config.glob.js.map((p) => {
+      return `${config.src}/${p}`;
+    });
+
+    config.glob.stylus = config.glob.stylus.map((p) => {
+      return `${config.src}/${p}`;
+    });
+
+    if (config.bundle.copy === true) {
+      config.bundle.copy = [
+        `${config.src}/**/!(*.js|*.jsx|*.ts|*.tsx|*.ui|*.styl)`,
+      ];
+    }
+
+    config.processed = true;
+  } else {
+    config = custom;
   }
-  return custom;
+  return config;
 }
 
 export default loadConfig;

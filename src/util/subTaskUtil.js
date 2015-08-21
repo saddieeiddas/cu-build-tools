@@ -1,6 +1,8 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
+/**
+ * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 
 import minimist from 'minimist';
 import path from 'path';
@@ -8,6 +10,7 @@ import globby from 'globby';
 import extend from 'extend';
 import util from 'gulp-util';
 import chug from 'gulp-chug';
+import is from 'is_js';
 
 /**
  * Resolve a Component Directory from the Root directory
@@ -31,30 +34,6 @@ export function resolveComponentDirectory(root, component) {
 }
 
 /**
- * Resolve a Sub Task based on process arguments
- * It should match tasks as "component::task"
- * It will check that a "cu-build.config.json" exists in the target component directory
- * Example: component-one::build -> would execute build on component-one
- */
-function resolveTask(root) {
-  const argv = minimist(process.argv.slice(2));
-  if (argv._.length > 0) {
-    const parts = argv._[0].split('::');
-    if (parts.length >= 2 && parts[1] !== '') {
-      const directory = resolveComponentDirectory(root, parts[0]);
-      if (directory) {
-        return {
-          'component': parts[0],
-          'task': parts[1],
-          'gulpTask': parts.join('::'),
-        };
-      }
-    }
-  }
-  return false;
-}
-
-/**
  * Resolve all Component Directories from the Root directory
  *
  * It will find all component directories containing "cu-build.config.js"
@@ -69,6 +48,39 @@ export function findComponentDirectories(root) {
   ];
   const directories = globby.sync(globs).map((p) => path.dirname(p));
   return directories;
+}
+
+/**
+ * Resolve a Sub Task based on process arguments
+ * It should match tasks as "component::task"
+ * It will check that a "cu-build.config.json" exists in the target component directory
+ * Example: component-one::build -> would execute build on component-one
+ */
+function resolveTask(gulp, root) {
+  const argv = minimist(process.argv.slice(2));
+  if (argv._.length > 0) {
+    const parts = argv._[0].split('::');
+    if (parts.length >= 2 && parts[1] !== '') {
+      const directory = resolveComponentDirectory(root, parts[0]);
+      if (directory) {
+        return {
+          component: parts[0],
+          task: parts[1],
+          gulpTask: parts.join('::'),
+        };
+      }
+    } else if (parts[0] !== '' && is.undefined(gulp.tasks[parts[0]])) {
+      const directories = findComponentDirectories(root).map((dir) => { return path.basename(dir); });
+      if (directories.indexOf(parts[0]) >= 0) {
+        return {
+          component: parts[0],
+          task: 'publish',
+          gulpTask: parts[0],
+        };
+      }
+    }
+  }
+  return false;
 }
 
 /**
@@ -105,6 +117,11 @@ export function getSubTaskArguments(options) {
 
   subArgs = subArgs.concat(createArgument(argv, 'port'));
   subArgs = subArgs.concat(createArgument(argv, 'publish'));
+  subArgs = subArgs.concat(createArgument(argv, 'server'));
+  subArgs = subArgs.concat(createArgument(argv, 'vsgen'));
+  subArgs = subArgs.concat(createArgument(argv, 'install'));
+  subArgs = subArgs.concat(createArgument(argv, 'install-npm'));
+  subArgs = subArgs.concat(createArgument(argv, 'install-tsd'));
 
   return subArgs;
 }
@@ -120,11 +137,11 @@ export function getSubTaskArguments(options) {
 export function executeTask(gulp, options, cb) {
   const directory = resolveComponentDirectory(options.path, options.component);
   if (directory) {
-    gulp.src(directory + '/gulpfile.babel.js', {'read': false})
+    gulp.src(directory + '/gulpfile.js', {'read': false})
       .pipe(chug({
-        'tasks': [options.task],
-        'args': getSubTaskArguments({
-          'args': options.args || {},
+        tasks: [options.task],
+        args: getSubTaskArguments({
+          args: options.args || {},
         }),
       }))
       .on('end', cb);
@@ -142,25 +159,25 @@ export function executeTask(gulp, options, cb) {
  *    args: the override arguments to pass to chug
  */
 export function executeTaskOnAllComponents(gulp, options, cb) {
-  const gulps = findComponentDirectories(options.path).map((dir) => dir + '/gulpfile.babel.js');
+  const gulps = findComponentDirectories(options.path).map((dir) => dir + '/gulpfile.js');
   gulp.src(gulps, {'read': false})
     .pipe(chug({
-      'tasks': [options.task],
-      'args': getSubTaskArguments({
-        'args': options.args || {},
+      tasks: [options.task],
+      args: getSubTaskArguments({
+        args: options.args || {},
       }),
     }))
     .on('end', cb);
 }
 
 const subTaskUtil = {
-  'resolveTask': resolveTask,
-  'resolveComponentDirectory': resolveComponentDirectory,
-  'findComponentDirectories': findComponentDirectories,
-  'getSubTaskArguments': getSubTaskArguments,
-  'createArgument': createArgument,
-  'executeTask': executeTask,
-  'executeTaskOnAllComponents': executeTaskOnAllComponents,
+  resolveTask: resolveTask,
+  resolveComponentDirectory: resolveComponentDirectory,
+  findComponentDirectories: findComponentDirectories,
+  getSubTaskArguments: getSubTaskArguments,
+  createArgument: createArgument,
+  executeTask: executeTask,
+  executeTaskOnAllComponents: executeTaskOnAllComponents,
 };
 
 export default subTaskUtil;

@@ -1,29 +1,19 @@
 cu-build-tools
 =================
 
-> Tools to build Camelot Unchained UI libraries and components
+> Tools to build Camelot Unchained UI libraries and modules
 
 Introduction
 ------------
 
-This library provides multiple sets of `gulp` tasks which aid in building UI `components` and `libraries`
+This library provides multiple sets of `gulp` tasks which aid in building UI `modules` and `libraries`
 
 There are currently two different sets of tasks:
 
-- [`builder`](https://github.com/csegames/cu-build-tools/blob/master/lib/builder/builder.js)
-- [`multi`](https://github.com/csegames/cu-build-tools/blob/master/lib/builder/multi.js)
+- [`builder`](https://github.com/csegames/cu-build-tools/blob/master/src/builder/builder.js)
+- [`multi`](https://github.com/csegames/cu-build-tools/blob/master/src/builder/multi.js)
 
-The `builder` module provides `gulp` tasks for building individual components and libraries. It supports the following setups:
-
-- Typescript - `.ts` and `.tsx`
-- Javascript - `.js` and `.jsx` (ES6)
-
-This system is also capabale of creating a `bundle` of code using `browserify`, which is ready to be used in the browser or CEF environment. This allows the use of `import` and `require` in components and libraires.
-
-The `multi` module provies `gulp` tasks for building multiple components and libraries. This is essentially a proxy for the `builder` task system. It also provides tasks for building the existing *(legacy)* ui, along with a system to `publish` the whole UI ready to be packaged into the client.
-
-All configuration will be stored in files named `cu-build.config.js` which will determine how that directory will be built.
-The default configuration can be seen [here](https://github.com/saddieeiddas/cu-ui-build-tools/blob/master/lib/util/config.js#L13)
+All configuration will be stored in files named `cu-build.config.js` which will determine how that module/library will be built.
 
 ---
 
@@ -46,7 +36,7 @@ Setup
 
 To utilise the build tools, you will need to create two files in the given directory:
 
-**`cu-build.config.js`**
+**`cu-build.config.js`** *Minimal Configuration*
 
 ```js
 /**
@@ -55,18 +45,17 @@ To utilise the build tools, you will need to create two files in the given direc
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
- module.exports = {
-  type: 'library',
+var name = 'name-here';
+
+module.exports = {
+  type: 'module', // (module|library|multi)
   path: __dirname,
-  name: 'cu-boilerplate-library',
-  publish: {
-    target: 'libs/cu-boilerplate-library'
-  },
- }
+  name: name,
+};
  
 ```
 
-**`gulpfile.js`**
+**`gulpfile.js`** *Minimal Configuration*
 
 ```js
 /**
@@ -75,57 +64,80 @@ To utilise the build tools, you will need to create two files in the given direc
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
- 'use strict';
+'use strict';
 
- var gulp = require('gulp');
- var buildConfig = require('./cu-build.config.js');
- var buildTools = require('cu-build-tools');
+var gulp = require('gulp');
+var buildConfig = require('./cu-build.config.js');
+var buildTools = require('cu-build-tools');
 
-buildTools.auto(gulp, buildConfig);
+// load build tool tasks and obtain processed build configuration
+var config = buildTools.auto(gulp, buildConfig);
+
+// custom gulp tasks can be defined here
 
 ```
 
 ---
 
-Component/Library - Builder
----------------------------
+Module/Library - Builder
+------------------------
 
-If `cu-build.config.js` has a type set to `library` or `component` the following tasks will be created in gulp:
+If `cu-build.config.js` has a type set to `library` or `module` the following tasks will be created in gulp:
 
-##### `gulp watch-server`
+##### `default`
 
-This will run the `server` and `watch` tasks below.
+This will do the following:
 
-##### `gulp server`
+- `install`
+- `build` or `publish`
+- `watch`
+
+##### `watch`
+
+This will watch the src directory and `build` or `publish` when files change.
+
+##### `server`
 
 This will create a connect server, you can then access this server via at http://localhost:9000/
 
-##### `gulp watch`
+##### `build`
 
-This will watch the src directory and build on changes.
+This will build everything (library and bundle) to the normal build directory (default `dist`)
 
-##### `gulp build`
+##### `publish`
 
-This will build the `component` or `library`
+This will build everything (bundle) to the configured publish directory (default `publish`).
+
+##### `install`
+
+This will install/generate npm dependencies, tsd and VS project.
+
 
 #### Command Line Arguments
 
-##### `--port`
+##### `--port ****`
 
-You can override the port used in `gulp server` and `gulp watch-server`
+You can override the port used for the connect server e.g. `gulp server --port 9001`
+
+##### `--server`
+
+You can specify the server should be run as part of the default task
+
+##### `--no-server`
+
+You can specify the server should **not** be run as part of the default task
 
 ##### `--publish`
 
-You can specify that the `build` should be published. This will also change the root directory of the `server` task to serve
-the publish directory instead of `dist`
+You can specify that the `publish` should be the default task instead of `build`
 
-This will cause the `build` to be sent to the `publish` directory configured in `cu-build.config.js` or the default `./publish`. It will also look in the parent directory to see if there is a configured publish directory.
-This allows the `multi` system to control where all sub components are published to.
+##### `--no-publish`
 
-##### `--publish path/to/publish/directory`
+You can specify that `build` should be the default task instead of `publish`
 
-This is the same as the `--publish` switch above except it is declaring the path to the `publish` directory.
+##### `--no-install`
 
+You can specify that the default task should not install anything.
 
 ---
 
@@ -134,44 +146,152 @@ Multi Builder
 
 If `cu-build.config.js` has a type set to `multi` the following tasks will be created in gulp:
 
-##### `gulp install`
+##### `install`
 
-This will run `npm install --production` on all subdirectories contianing `cu-build.config.js`
+This will run `install` on all subdirectories containing `cu-build.config.js` (including node_modules)
 
-##### `gulp build`
+##### `publish`
 
-This will build all the subdirectories including the `legacy` ui to the `publish` directory
+This will publish all subdirectories to the configured publish directory
 
-##### `gulp clean`
+##### `clean`
 
 This will clean the `publish` directory
 
+##### `gulp %DIRECTORY%`
+
+This will run the `publish` task on the specified subdirectory.
+
+As an example: `gulp character` will run the `publish` task on the `character` directory.
+
 ##### `gulp %DIRECTORY%::%TASK%`
 
-This is a `proxy` to the normal `library` and `component` build system. It allows you to run tasks on a target directory.
+This is a `proxy` to the normal `module` and `component` build system. It allows you to run tasks on a target directory.
 
-An example:  `gulp healthbar::build --publish`, building the `healthbar` component with the `--publish` flag.
-Another example: `gulp healthbar::watch-server --publish`, watching/building the `healthbar` component on changes.
-
----
-
-Examples
---------
-
-- **[CU-UI Using Multi Builder](https://github.com/saddieeiddas/cu-ui/tree/ui-2)**
-- [Example Library](https://github.com/saddieeiddas/cu-ui-boilerplate-library)
-- [Example Component](https://github.com/saddieeiddas/cu-ui-boilerplate-component)
-- [Example Multi](https://github.com/saddieeiddas/cu-ui-boilerplate-multi-component)
-
+As an example:  `gulp character::publish` will run the `publish` task on the `character` directory.
 
 ---
 
-TODO
-----
+Build Configuration
+-------------------
 
-Things that need work:
+#### Example Configuration
 
-- [ ] allow `multi` build to have `libraries` as dependencies in `package.json`. These would then be built to the `publish` directory in a normal `build.
+##### Example Module/Library Builder Configuration
 
-- [ ] make the configuration a bit more flexible, and add some documentation for `cu-build.config.js`
+```js
 
+var name = 'name-here';
+
+module.exports = {
+  type: 'module', // or library
+  path: __dirname,
+  name: name,
+};
+```
+
+##### Example Multi Builder Configuration
+
+```js
+module.exports = {
+  type: 'multi',
+  path: __dirname,
+  name: 'multi',
+  publish: {
+    dest: 'publish',
+  },
+};
+```
+
+---
+
+#### Bundle Configuration Structure
+
+> set `bundle` to `false` to disable bundle building (Not Recommended)
+
+```js
+bundle: {
+  dest: 'dist', // the destination folder for bundle (will be overridden by publish.dest+publish.target during a publish
+  main_in: true, // the tmp in path (AUTO generated when set to true)
+  main_out: true, // the out path (AUTO generated when set to true)
+  stylus: true, // if stylus should be copied
+  stylus_base: 'style', // the base (within src) directory for stylus
+  stylus_dest: 'css', // the target directory for stylus
+  copy: true, // array of file globs (or false if no copy) setting to true will auto populate the copy globs
+  copy_base: '', // the base (within src) directory for files to copy.
+}
+```
+
+#### Library Configuration Structure
+
+> set `lib` to `false` to disable library building
+
+```js
+lib: {
+  dest: 'lib', // the destination folder for lib
+  base: true, // the base (within src) directory within src
+  stylus: false, // if stylus should be copied
+  stylus_base: 'style', // the base (within src) directory within src for stylus
+  stylus_dest: '', // the target directory for stylus
+  copy: false, // array of file globs (or false if no copy)
+  copy_base: '', // the base (within src) directory within src for copy
+}
+```
+
+#### Main Configuration Structure
+
+```js
+{
+  type: '', // library, module, multi
+  path: '', // the project root path, should be set to __dirname
+  src: 'src', // the src directory
+  tmp: 'tmp', // the tmp directory
+  name: null, // the project name
+  main_name: 'main', // the main file name
+  proj_name: null, // the VS project name
+  lib: null, // @see above
+  bundle: null, // @see above
+  server: {
+    root: null, // the server root path
+    port: 9000, // the server port
+  },
+  build: {
+    install_npm: true, // if npm should be installed during install task
+    install_tsd: true, // if tsd should be installed during install task
+    publish: false, // if the default task is publish
+    server: false, // if the server should be started by default
+  },
+  publish: {
+    dest: 'publish', // the publish directory
+    target: true, // the publish target (AUTO generated when set to true)
+  },
+  license: '...', // the license string attached to top of bundled file
+  glob: { // the glob patterns, should not need to change these
+    ts: ['**/*+(.ts|.tsx)'],
+    js: ['**/*+(.js|.jsx)'],
+    stylus: ['**/*.styl'],
+  }
+}
+```
+
+---
+
+Task Hooks
+----------
+
+There are a number of gulp task hooks that can be overridden to allow custom tasks to take place:
+
+- build:before
+- build:after
+- publish:before
+- publish:after
+- install:before
+- install:after
+- library:before
+- library:after
+- bundle:before
+- bundle:after
+- compile:before
+- compile:after
+
+You can override any of these tasks, to add additional processing.
