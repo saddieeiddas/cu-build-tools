@@ -39,10 +39,10 @@ function loadConfig(custom) {
         dest: 'dist',
         main_in: true, // the tmp in path
         main_out: true, // the tmp out path
-        stylus: true,
+        stylus: false,
         stylus_base: 'style',
         stylus_dest: 'css',
-        sass: false,
+        sass: true,
         sass_base: 'sass',
         sass_dest: 'css',
         copy: true,
