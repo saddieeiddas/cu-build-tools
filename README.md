@@ -270,7 +270,13 @@ lib: {
     ts: ['**/*+(.ts|.tsx)'],
     js: ['**/*+(.js|.jsx)'],
     stylus: ['**/*.styl'],
-  }
+  },
+  compile: {
+    ts: true, // enable typescript compile
+    js: false, // enable javascript compile
+    sass: true, // enable sass compile
+    stylus: false, // enable stylus compile
+  },
 }
 ```
 

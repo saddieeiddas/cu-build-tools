@@ -35,6 +35,7 @@
     "gulp-plumber": "^1.0.1",
     "gulp-rename": "^1.2.2",
     "gulp-replace": "^0.5.4",
+    "gulp-sass": "^2.0.4",
     "gulp-sourcemaps": "1.5.2",
     "gulp-stylus": "^2.0.5",
     "gulp-typescript": "^2.8.0",

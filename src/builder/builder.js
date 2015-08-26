@@ -169,10 +169,34 @@ export default function(gulp, options) {
   }
 
   /**
+   * Compile Sass
+   */
+  function compileSass() {
+    return gulp.src(config.glob.sass)
+      .pipe(plugins.sourcemaps.init())
+      .pipe(plugins.sass().on('error', plugins.sass.logError))
+      .pipe(plugins.sourcemaps.write({sourceRoot: '../', includeContent: true}))
+      .pipe(gulp.dest(config.tmp));
+  }
+
+  /**
    * Compile ES6, TypeScript, DTS and Stylus to Temporary Directory
    */
   function compile(cb) {
-    return sequence('clean:tmp', 'compile:before', ['compile:js', 'compile:ts', 'compile:stylus'], 'compile:dts', 'compile:after', cb);
+    const compilers = [];
+    if (config.compile.ts) {
+      compilers.push('compile:ts');
+    }
+    if (config.compile.js) {
+      compilers.push('compile:js');
+    }
+    if (config.compile.sass) {
+      compilers.push('compile:sass');
+    }
+    if (config.compile.stylus) {
+      compilers.push('compile:stylus');
+    }
+    return sequence('clean:tmp', 'compile:before', compilers, 'compile:dts', 'compile:after', cb);
   }
 
   /**
@@ -195,10 +219,17 @@ export default function(gulp, options) {
       streams.push(dtsStream);
 
       if (config.lib.stylus) {
-        const styleStream = gulp.src(`${config.tmp}/**/*.css`, {base: `${config.tmp}/${config.lib.stylus_base}`})
+        const stylusStream = gulp.src(`${config.tmp}/**/*.css`, {base: `${config.tmp}/${config.lib.stylus_base}`})
           .pipe(plugins.plumber(plumberOpts))
           .pipe(gulp.dest(`${config.lib.dest}/${config.lib.stylus_dest}`));
-        streams.push(styleStream);
+        streams.push(stylusStream);
+      }
+
+      if (config.lib.sass) {
+        const sassStream = gulp.src(`${config.tmp}/**/*.css`, {base: `${config.tmp}/${config.lib.sass_base}`})
+          .pipe(plugins.plumber(plumberOpts))
+          .pipe(gulp.dest(`${config.lib.dest}/${config.lib.sass_dest}`));
+        streams.push(sassStream);
       }
 
       if (config.lib.copy) {
@@ -222,7 +253,7 @@ export default function(gulp, options) {
   /**
    * Core Browserify Bundle Process
    */
-  function browserifyCore(shouldMinify, cb) {
+  function browserifyCore(shouldMinify) {
     const b = plugins.browserify({
       entries: `${config.tmp}/${config.bundle.main_in}`,
       debug: true,
@@ -231,8 +262,8 @@ export default function(gulp, options) {
     return b.bundle()
       .on('error', (err) => {
         plugins.util.log(plugins.util.colors.red(err.message));
-        cb();
       })
+      .pipe(plugins.plumber(plumberOpts))
       .pipe(plugins.vinylSourceStream(path.basename(config.bundle.main_out, '.js') + (shouldMinify ? '.min' : '') + '.js'))
       .pipe(plugins.vinylBuffer())
       .pipe(plugins.sourcemaps.init({loadMaps: true}))
@@ -267,10 +298,17 @@ export default function(gulp, options) {
       streams.push(browserifyStreams);
 
       if (config.bundle.stylus) {
-        const styleStream = gulp.src(`${config.tmp}/**/*.css`, {base: `${config.tmp}/${config.bundle.stylus_base}`})
+        const stylusStream = gulp.src(`${config.tmp}/**/*.css`, {base: `${config.tmp}/${config.bundle.stylus_base}`})
             .pipe(plugins.plumber(plumberOpts))
             .pipe(gulp.dest(`${config.bundle.dest}/${config.bundle.stylus_dest}`));
-        streams.push(styleStream);
+        streams.push(stylusStream);
+      }
+
+      if (config.bundle.sass) {
+        const sassStream = gulp.src(`${config.tmp}/**/*.css`, {base: `${config.tmp}/${config.bundle.sass_base}`})
+          .pipe(plugins.plumber(plumberOpts))
+          .pipe(gulp.dest(`${config.bundle.dest}/${config.bundle.sass_dest}`));
+        streams.push(sassStream);
       }
 
       if (config.bundle.copy) {
@@ -406,7 +444,7 @@ export default function(gulp, options) {
     if (config.build.server) {
       watchTask = ['watch', 'server'];
     }
-    return sequence('install', buildTask, watchTask, cb);
+    return sequence(buildTask, watchTask, cb);
   }
 
   /**
@@ -438,6 +476,7 @@ export default function(gulp, options) {
   gulp.task('compile:ts', compileTypeScript);
   gulp.task('compile:dts', compileDts);
   gulp.task('compile:stylus', compileStylus);
+  gulp.task('compile:sass', compileSass);
   gulp.task('compile:after', emptyTask);
 
   gulp.task('library', library);
