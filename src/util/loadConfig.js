@@ -21,6 +21,7 @@ function loadConfig(custom) {
         ts: ['**/*+(.ts|.tsx)'],
         js: ['**/*+(.js|.jsx)'],
         stylus: ['**/*.styl'],
+        sass: ['**/*.scss'],
       },
       lib: {
         dest: 'lib',
@@ -28,6 +29,9 @@ function loadConfig(custom) {
         stylus: false,
         stylus_base: 'style',
         stylus_dest: '',
+        sass: false,
+        sass_base: 'sass',
+        sass_dest: '',
         copy: false,
         copy_base: '',
       },
@@ -38,6 +42,9 @@ function loadConfig(custom) {
         stylus: true,
         stylus_base: 'style',
         stylus_dest: 'css',
+        sass: false,
+        sass_base: 'sass',
+        sass_dest: 'css',
         copy: true,
         copy_base: '',
       },
@@ -49,6 +56,12 @@ function loadConfig(custom) {
         name: null,
         main_name: 'main',
         proj_name: null,
+        compile: {
+          ts: true,
+          js: false,
+          sass: true,
+          stylus: false,
+        },
         server: {
           root: null,
           port: 9000,
@@ -232,9 +245,19 @@ function loadConfig(custom) {
       return `${config.src}/${p}`;
     });
 
+    config.glob.sass = config.glob.sass.map((p) => {
+      return `${config.src}/${p}`;
+    });
+
     if (config.bundle.copy === true) {
       config.bundle.copy = [
-        `${config.src}/**/!(*.js|*.jsx|*.ts|*.tsx|*.ui|*.styl)`,
+        `${config.src}/**/!(*.js|*.jsx|*.ts|*.tsx|*.ui|*.styl|*.scss)`,
+      ];
+    }
+
+    if (config.lib.copy === true) {
+      config.lib.copy = [
+        `${config.src}/**/!(*.js|*.jsx|*.ts|*.tsx|*.ui|*.styl|*.scss)`,
       ];
     }
 
