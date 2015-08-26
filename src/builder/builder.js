@@ -378,12 +378,7 @@ export default function(gulp, options) {
         opts.resolveDependencies = true;
         opts.saveToConfig = true;
         return api.reinstall(opts).then(() => {
-          return api.link('').then(() => {
-            const tsdConfig = JSON.parse(fs.readFileSync('tsd.json'));
-            if (fs.existsSync(tsdConfig.bundle) === false) {
-              fs.writeFile(tsdConfig.bundle, '');
-            }
-          });
+          return api.link('');
         });
       }).finally(() => {
         cb();
