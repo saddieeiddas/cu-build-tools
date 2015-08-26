@@ -4,12 +4,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
- module.exports = {
+module.exports = {
   auto: require('./lib/auto'),
   builder: require('./lib/builder/builder'),
   multi: require('./lib/builder/multi'),
   util: {
     loadConfig: require('./lib/util/loadConfig'),
-    createPrefix: require('./lib/util/createPrefix'),
   },
- };
+};

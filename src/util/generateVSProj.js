@@ -8,8 +8,9 @@ import fs from 'fs';
 import gulpUtil from 'gulp-util';
 import extend from 'extend';
 import xmldom from 'xmldom';
+import {pd} from 'pretty-data';
 
-function generateVSProj(proj, opt = {}) {
+export default function(proj, opt = {}) {
   const PluginError = gulpUtil.PluginError;
   const DOMParser = xmldom.DOMParser;
   const XMLSerializer = xmldom.XMLSerializer;
@@ -20,12 +21,12 @@ function generateVSProj(proj, opt = {}) {
   }
 
   const config = {
-    'tags': {
+    tags: {
       '.ts': 'TypeScriptCompile',
       '.tsx': 'TypeScriptCompile',
       '..': 'Content',
     },
-    'template': path.join(__dirname, '..', 'content', 'template.proj'),
+    template: path.join(__dirname, '..', 'content', 'template.proj'),
   };
   extend(true, config, opt);
 
@@ -57,16 +58,13 @@ function generateVSProj(proj, opt = {}) {
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
           const ext = path.extname(file);
-          const tagName = config.tags.hasOwnProperty(ext)
-            ? config.tags[ext]
-            : config.tags['..'];
-
+          const tagName = config.tags.hasOwnProperty(ext) ? config.tags[ext] : config.tags['..'];
           const element = dom.createElementNS(target.namespaceURI, tagName);
           element.setAttribute('Include', file);
           target.appendChild(element);
         }
 
-        const finalContent = new XMLSerializer().serializeToString(dom);
+        const finalContent = pd.xml(new XMLSerializer().serializeToString(dom));
         fs.writeFile(proj, finalContent, 'utf8', (writeError) => {
           if (writeError) {
             that.emit('error', writeError);
@@ -82,5 +80,3 @@ function generateVSProj(proj, opt = {}) {
 
   return through.obj(bufferContent, endStream);
 }
-
-export default generateVSProj;
