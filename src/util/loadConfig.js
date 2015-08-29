@@ -39,6 +39,7 @@ function loadConfig(custom) {
       },
       bundle: {
         dest: 'dist',
+        main_base: false,
         main: true,
         stylus: false,
         stylus_base: 'style',
