@@ -22,6 +22,7 @@ function loadConfig(custom) {
         js: ['**/*+(.js|.jsx)'],
         stylus: ['**/*.styl'],
         sass: ['**/*.scss'],
+        bundle: ['**/*.bundle.js'],
       },
       lib: {
         dest: 'lib',
@@ -34,11 +35,11 @@ function loadConfig(custom) {
         sass_dest: '',
         copy: false,
         copy_base: '',
+        css_rename_main: false,
       },
       bundle: {
         dest: 'dist',
-        main_in: true, // the tmp in path
-        main_out: true, // the tmp out path
+        main: true,
         stylus: false,
         stylus_base: 'style',
         stylus_dest: 'css',
@@ -73,6 +74,10 @@ function loadConfig(custom) {
           install_tsd: true,
           publish: false,
           server: false,
+          sourcemaps: true,
+          sourcemaps_inline: false,
+          is_multi: false,
+          ui_nested: true,
         },
         publish: {
           dest: 'publish',
@@ -127,38 +132,32 @@ function loadConfig(custom) {
       config.bundle = extend(true, {}, defaults.bundle);
     }
     // determine the main bundle file
-    if (is.truthy(config.bundle.main_in)) {
-      const mainFiles = [
-        `${config.main_name}.bundle.ts`,
-        `${config.main_name}.bundle.tsx`,
-        `ts/${config.main_name}.bundle.ts`,
-        `ts/${config.main_name}.bundle.tsx`,
-        `${config.main_name}.ts`,
-        `${config.main_name}.tsx`,
-        `ts/${config.main_name}.ts`,
-        `ts/${config.main_name}.tsx`,
-        `${config.main_name}.bundle.js`,
-        `${config.main_name}.bundle.jsx`,
-        `js/${config.main_name}.bundle.js`,
-        `js/${config.main_name}.bundle.jsx`,
-        `${config.main_name}.js`,
-        `${config.main_name}.jsx`,
-        `js/${config.main_name}.js`,
-        `js/${config.main_name}.jsx`,
+    const mainFiles = [
+      `${config.main_name}.bundle.ts`,
+      `${config.main_name}.bundle.tsx`,
+      `ts/${config.main_name}.bundle.ts`,
+      `ts/${config.main_name}.bundle.tsx`,
+      `${config.main_name}.ts`,
+      `${config.main_name}.tsx`,
+      `ts/${config.main_name}.ts`,
+      `ts/${config.main_name}.tsx`,
+      `${config.main_name}.bundle.js`,
+      `${config.main_name}.bundle.jsx`,
+      `js/${config.main_name}.bundle.js`,
+      `js/${config.main_name}.bundle.jsx`,
+      `${config.main_name}.js`,
+      `${config.main_name}.jsx`,
+      `js/${config.main_name}.js`,
+      `js/${config.main_name}.jsx`,
 
-      ];
-      mainFiles.some((file) => {
-        if (fs.existsSync(`${config.path}/${config.src}/${file}`)) {
-          config.bundle.main_in = file.replace('.tsx', '.js').replace('.ts', '.js').replace('.jsx', '.js');
-          if (is.truthy(config.bundle.main_out)) {
-            config.bundle.main_out = config.bundle.main_in.replace('ts/', 'js/');
-            config.bundle.main_out = config.bundle.main_out.replace(path.basename(config.bundle.main_out, '.js'), config.name);
-          }
-          return true;
-        }
-        return false;
-      });
-    }
+    ];
+    mainFiles.some((file) => {
+      if (fs.existsSync(`${config.path}/${config.src}/${file}`)) {
+        config.bundle.main = file.replace(/(.tsx|.jsx|.ts)/, '.js');
+        return true;
+      }
+      return false;
+    });
 
     if (argv.port) {
       config.server.port = argv.port;
@@ -186,13 +185,33 @@ function loadConfig(custom) {
       config.build.install_npm = argv.install;
     }
 
+    if (is.not.undefined(argv.sourcemaps)) {
+      config.build.sourcemaps = argv.sourcemaps;
+    }
+
+    if (is.not.undefined(argv['sourcemaps-inline'])) {
+      config.build.sourcemaps_inline = argv['sourcemaps-inline'];
+    }
+
+    if (is.not.undefined(argv['ui-nested'])) {
+      config.build.ui_nested = argv['ui-nested'];
+    }
+
     // look for multi build, publish configuration
     if (fs.existsSync(`../${cuBuildConfig}`)) {
       const publishConfig = require(`${config.path}/../${cuBuildConfig}`);
       config.publish.dest =  path.relative(config.path, `${publishConfig.path}/${publishConfig.publish.dest}`);
+      config.build.is_multi = true;
+      if (is.not.undefined(publishConfig.build) && is.not.undefined(publishConfig.build.ui_nested)) {
+        config.build.ui_nested = publishConfig.build.ui_nested;
+      }
     } else if (fs.existsSync(`../../${cuBuildConfig}`)) {
       const publishConfig = require(`${config.path}/../../${cuBuildConfig}`);
       config.publish.dest =  path.relative(config.path, `${publishConfig.path}/${publishConfig.publish.dest}`);
+      config.build.is_multi = true;
+      if (is.not.undefined(publishConfig.build) && is.not.undefined(publishConfig.build.ui_nested)) {
+        config.build.ui_nested = publishConfig.build.ui_nested;
+      }
     }
     // make sure path is no more than 3 levels higher (as we will need to use force)
     // this will allow publish directory to be one level higher that the top multi project
@@ -249,6 +268,14 @@ function loadConfig(custom) {
       return `${config.src}/${p}`;
     });
 
+    config.glob.bundle = config.glob.bundle.map((p) => {
+      return `${config.tmp}/${p}`;
+    });
+
+    if (config.bundle) {
+      config.glob.bundle.push(`!${config.tmp}/${config.bundle.main}`);
+    }
+
     if (config.bundle.copy === true) {
       config.bundle.copy = [
         `${config.src}/**/!(*.js|*.jsx|*.ts|*.tsx|*.ui|*.styl|*.scss)`,
@@ -257,7 +284,7 @@ function loadConfig(custom) {
 
     if (config.lib.copy === true) {
       config.lib.copy = [
-        `${config.src}/**/!(*.js|*.jsx|*.ts|*.tsx|*.ui|*.styl|*.scss)`,
+        `${config.src}/**/!(*.js|*.jsx|*.ts|*.tsx|*.ui)`,
       ];
     }
 
