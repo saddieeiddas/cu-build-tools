@@ -122,6 +122,9 @@ export function getSubTaskArguments(options) {
   subArgs = subArgs.concat(createArgument(argv, 'install'));
   subArgs = subArgs.concat(createArgument(argv, 'install-npm'));
   subArgs = subArgs.concat(createArgument(argv, 'install-tsd'));
+  subArgs = subArgs.concat(createArgument(argv, 'sourcemaps'));
+  subArgs = subArgs.concat(createArgument(argv, 'sourcemaps-inline'));
+  subArgs = subArgs.concat(createArgument(argv, 'ui-nested'));
 
   return subArgs;
 }

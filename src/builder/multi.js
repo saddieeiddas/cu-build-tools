@@ -8,6 +8,7 @@ import loadPlugins from 'gulp-load-plugins';
 import loadConfig from './../util/loadConfig';
 import createSequence from 'run-sequence';
 import subTaskUtil from './../util/subTaskUtil';
+import fs from 'fs';
 
 const plugins = loadPlugins({
   pattern: [
@@ -65,6 +66,35 @@ export default function(gulp, options) {
   }
 
   /**
+   * Run Development Web Server
+   */
+  function server() {
+    plugins.util.log('Starting Server In: ' + config.server.root);
+    const fakeAPI = require.resolve('cu-fake-api');
+    const fakeAPIContents = fs.readFileSync(fakeAPI, 'utf8');
+    plugins.connect.server({
+      root: config.server.root,
+      port: config.server.port,
+      middleware: () => {
+        return [
+          require('connect-inject')({
+            runAll: true,
+            rules: [
+              {
+                match: /<head>/ig,
+                snippet: `<script>${fakeAPIContents}</script>`,
+                fn: (w, s) => {
+                  return w + s;
+                },
+              },
+            ],
+          }),
+        ];
+      },
+    });
+  }
+
+  /**
    * Default Task
    */
   function defaultTask(cb) {
@@ -79,6 +109,7 @@ export default function(gulp, options) {
   gulp.task('publish', publish);
   gulp.task('publish:all', publishAll);
   gulp.task('clean', clean);
+  gulp.task('server', server);
 
   /**
    * Register Sub Task if Required

@@ -16,6 +16,8 @@
   "dependencies": {
     "babel-eslint": "4.0.10",
     "browserify": "11.0.0",
+    "connect-inject": "^0.4.0",
+    "cu-fake-api": "git+https://github.com/Mehuge/cu-fake-api.git",
     "del": "1.2.0",
     "dts-bundle": "^0.3.0",
     "eslint": "1.2.1",
