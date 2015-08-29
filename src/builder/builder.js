@@ -238,13 +238,13 @@ export default function(gulp, options) {
       streams.push(dtsStream);
 
       if (config.lib.stylus) {
-        const stylusStream = gulp.src([`${config.tmp}/**/*.css`, `!${config.tmp}/main.css`, `!${config.tmp}/css/main.css`], {base: `${config.tmp}/${config.lib.stylus_base}`})
+        const stylusStream = gulp.src([`${config.tmp}/**/*.css`, `!${config.tmp}/main.css`, `!${config.tmp}/css/main.css`, `!${config.tmp}/style/main.css`], {base: `${config.tmp}/${config.lib.stylus_base}`})
           .pipe(plugins.plumber(plumberOpts))
           .pipe(plugins.sourcemaps.init({loadMaps: true}))
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write('', {includeContent: true})))
           .pipe(gulp.dest(`${config.lib.dest}/${config.lib.stylus_dest}`));
         streams.push(stylusStream);
-        const mainCssStream = gulp.src([`${config.tmp}/main.css`, `${config.tmp}/css/main.css`], {base: `${config.tmp}/${config.lib.stylus_base}`})
+        const mainCssStream = gulp.src([`${config.tmp}/main.css`, `${config.tmp}/css/main.css`, `${config.tmp}/style/main.css`], {base: `${config.tmp}/${config.lib.stylus_base}`})
           .pipe(plugins.plumber(plumberOpts))
           .pipe(plugins.sourcemaps.init({loadMaps: true}))
           .pipe(plugins.if(config.lib.css_rename_main, plugins.rename((p) => {
@@ -257,13 +257,13 @@ export default function(gulp, options) {
       }
 
       if (config.lib.sass) {
-        const sassStream = gulp.src([`${config.tmp}/**/*.css`, `!${config.tmp}/main.css`, `!${config.tmp}/css/main.css`], {base: `${config.tmp}/${config.lib.sass_base}`})
+        const sassStream = gulp.src([`${config.tmp}/**/*.css`, `!${config.tmp}/main.css`, `!${config.tmp}/css/main.css`, `!${config.tmp}/sass/main.css`], {base: `${config.tmp}/${config.lib.sass_base}`})
           .pipe(plugins.plumber(plumberOpts))
           .pipe(plugins.sourcemaps.init({loadMaps: true}))
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write('', {includeContent: true})))
           .pipe(gulp.dest(`${config.lib.dest}/${config.lib.sass_dest}`));
         streams.push(sassStream);
-        const mainCssStream = gulp.src([`${config.tmp}/main.css`, `${config.tmp}/css/main.css`], {base: `${config.tmp}/${config.lib.sass_base}`})
+        const mainCssStream = gulp.src([`${config.tmp}/main.css`, `${config.tmp}/css/main.css`, `${config.tmp}/sass/main.css`], {base: `${config.tmp}/${config.lib.sass_base}`})
           .pipe(plugins.plumber(plumberOpts))
           .pipe(plugins.sourcemaps.init({loadMaps: true}))
           .pipe(plugins.if(config.lib.css_rename_main, plugins.rename((p) => {
@@ -349,38 +349,38 @@ export default function(gulp, options) {
       streams.push(browserifyStreams);
 
       if (config.bundle.stylus) {
-        const stylusStream = gulp.src([`${config.tmp}/**/*.css`, `!${config.tmp}/main.css`, `!${config.tmp}/css/main.css`], {base: `${config.tmp}/${config.bundle.stylus_base}`})
+        const stylusStream = gulp.src([`${config.tmp}/**/*.css`, `!${config.tmp}/main.css`, `!${config.tmp}/css/main.css`, `!${config.tmp}/style/main.css`], {base: `${config.tmp}/${config.bundle.stylus_base}`})
             .pipe(plugins.plumber(plumberOpts))
           .pipe(plugins.sourcemaps.init({loadMaps: true}))
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write(config.build.sourcemaps_inline ? '' : '.', {includeContent: true})))
             .pipe(gulp.dest(`${config.bundle.dest}/${config.bundle.stylus_dest}`));
         streams.push(stylusStream);
-        const mainCssStream = gulp.src([`${config.tmp}/main.css`, `${config.tmp}/css/main.css`], {base: `${config.tmp}/${config.bundle.stylus_base}`})
+        const mainCssStream = gulp.src([`${config.tmp}/main.css`, `${config.tmp}/css/main.css`, `${config.tmp}/style/main.css`], {base: `${config.tmp}/${config.bundle.stylus_base}`})
           .pipe(plugins.plumber(plumberOpts))
           .pipe(plugins.sourcemaps.init({loadMaps: true}))
-          .pipe(plugins.rename((p) => {
+          .pipe(plugins.if(config.bundle.css_rename_main, plugins.rename((p) => {
             p.basename = config.name;
             p.extname = '.css';
-          }))
+          })))
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write(config.build.sourcemaps_inline ? '' : '.', {includeContent: true})))
           .pipe(gulp.dest(`${config.bundle.dest}/${config.bundle.stylus_dest}`));
         streams.push(mainCssStream);
       }
 
       if (config.bundle.sass) {
-        const sassStream = gulp.src([`${config.tmp}/**/*.css`, `!${config.tmp}/main.css`, `!${config.tmp}/css/main.css`], {base: `${config.tmp}/${config.bundle.sass_base}`})
+        const sassStream = gulp.src([`${config.tmp}/**/*.css`, `!${config.tmp}/main.css`, `!${config.tmp}/css/main.css`, `!${config.tmp}/sass/main.css`], {base: `${config.tmp}/${config.bundle.sass_base}`})
           .pipe(plugins.plumber(plumberOpts))
           .pipe(plugins.sourcemaps.init({loadMaps: true}))
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write(config.build.sourcemaps_inline ? '' : '.', {includeContent: true})))
           .pipe(gulp.dest(`${config.bundle.dest}/${config.bundle.sass_dest}`));
         streams.push(sassStream);
-        const mainCssStream = gulp.src([`${config.tmp}/main.css`, `${config.tmp}/css/main.css`], {base: `${config.tmp}/${config.bundle.sass_base}`})
+        const mainCssStream = gulp.src([`${config.tmp}/main.css`, `${config.tmp}/css/main.css`, `${config.tmp}/sass/main.css`], {base: `${config.tmp}/${config.bundle.sass_base}`})
           .pipe(plugins.plumber(plumberOpts))
           .pipe(plugins.sourcemaps.init({loadMaps: true}))
-          .pipe(plugins.rename((p) => {
+          .pipe(plugins.if(config.bundle.css_rename_main, plugins.rename((p) => {
             p.basename = config.name;
             p.extname = '.css';
-          }))
+          })))
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write(config.build.sourcemaps_inline ? '' : '.', {includeContent: true})))
           .pipe(gulp.dest(`${config.bundle.dest}/${config.bundle.sass_dest}`));
         streams.push(mainCssStream);

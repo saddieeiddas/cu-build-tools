@@ -48,6 +48,7 @@ function loadConfig(custom) {
         sass_dest: 'css',
         copy: true,
         copy_base: '',
+        css_rename_main: true,
       },
       config: {
         type: null,
@@ -238,8 +239,12 @@ function loadConfig(custom) {
         config.server.root = config.path;
       } else if (config.type === 'multi') {
         config.server.root = config.publish.dest;
-      } else {
+      } else if (config.build.publish || config.build.is_multi) {
+        config.server.root = config.publish.dest + '/' + config.publish.target;
+      } else if (config.bundle) {
         config.server.root = config.bundle.dest;
+      } else {
+        config.server.root = '';
       }
     }
     config.server.root = path.resolve(`${config.path}/${config.server.root}`);
