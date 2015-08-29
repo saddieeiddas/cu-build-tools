@@ -236,6 +236,8 @@ function loadConfig(custom) {
     if (config.server.root === null) {
       if (config.type === 'library' && config.build.publish === false) {
         config.server.root = config.path;
+      } else if (config.type === 'multi') {
+        config.server.root = config.publish.dest;
       } else {
         config.server.root = config.bundle.dest;
       }

@@ -51,9 +51,27 @@ export default function(gulp, options) {
    */
   function server() {
     plugins.util.log('Starting Server In: ' + config.server.root);
+    const fakeAPI = require.resolve('cu-fake-api');
+    const fakeAPIContents = fs.readFileSync(fakeAPI, 'utf8');
     plugins.connect.server({
       root: config.server.root,
       port: config.server.port,
+      middleware: () => {
+        return [
+          require('connect-inject')({
+            runAll: true,
+            rules: [
+              {
+                match: /<head>/ig,
+                snippet: `<script>${fakeAPIContents}</script>`,
+                fn: (w, s) => {
+                  return w + s;
+                },
+              },
+            ],
+          }),
+        ];
+      },
     });
   }
 

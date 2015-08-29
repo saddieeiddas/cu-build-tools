@@ -139,6 +139,19 @@ You can specify that `build` should be the default task instead of `publish`
 
 You can specify that the default task should not install anything.
 
+##### `--no-sourcemaps`
+
+You can specify that sourcemaps should not be created
+
+##### `--sourcemaps-inline`
+
+You can specify that sourcemaps should be inlined
+
+##### `--ui-nested`
+
+You can specify that ui files should not be nested
+
+
 ---
 
 Multi Builder
@@ -212,11 +225,13 @@ module.exports = {
 ```js
 bundle: {
   dest: 'dist', // the destination folder for bundle (will be overridden by publish.dest+publish.target during a publish
-  main_in: true, // the tmp in path (AUTO generated when set to true)
-  main_out: true, // the out path (AUTO generated when set to true)
-  stylus: true, // if stylus should be copied
-  stylus_base: 'style', // the base (within src) directory for stylus
-  stylus_dest: 'css', // the target directory for stylus
+  main: true, // the tmp in path (AUTO generated when set to true)
+  stylus: false, // if stylus should be copied
+  stylus_base: 'style', // the base directory within src for stylus
+  stylus_dest: '', // the target directory for stylus
+  sass: false, // if sass should be copied
+  sass_base: 'sass', // the base directory within src for sass
+  sass_dest: '', // the target directory for sass
   copy: true, // array of file globs (or false if no copy) setting to true will auto populate the copy globs
   copy_base: '', // the base (within src) directory for files to copy.
 }
@@ -231,10 +246,14 @@ lib: {
   dest: 'lib', // the destination folder for lib
   base: true, // the base (within src) directory within src
   stylus: false, // if stylus should be copied
-  stylus_base: 'style', // the base (within src) directory within src for stylus
+  stylus_base: 'style', // the base directory within src for stylus
   stylus_dest: '', // the target directory for stylus
+  sass: false, // if sass should be copied
+  sass_base: 'sass', // the base directory within src for sass
+  sass_dest: '', // the target directory for sass
   copy: false, // array of file globs (or false if no copy)
   copy_base: '', // the base (within src) directory within src for copy
+  css_rename_main: false, // if main css files should be renamed to library name
 }
 ```
 
@@ -260,6 +279,10 @@ lib: {
     install_tsd: true, // if tsd should be installed during install task
     publish: false, // if the default task is publish
     server: false, // if the server should be started by default
+    sourcemaps: true, // if sourcemaps should be created for bundles
+    sourcemaps_inline: false, // if sourcemaps should be inline for bundles
+    is_multi: false, // if module/library is running under multi builder
+    ui_nested: true, // if ui files should be nested or not
   },
   publish: {
     dest: 'publish', // the publish directory
@@ -270,6 +293,8 @@ lib: {
     ts: ['**/*+(.ts|.tsx)'],
     js: ['**/*+(.js|.jsx)'],
     stylus: ['**/*.styl'],
+    sass: ['**/*.scss'],
+    bundle: ['**/*.bundle.js'],
   },
   compile: {
     ts: true, // enable typescript compile
