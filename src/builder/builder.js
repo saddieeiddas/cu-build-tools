@@ -318,7 +318,8 @@ export default function(gulp, options) {
       .pipe(plugins.if(shouldMinify, plugins.uglify()))
       .pipe(plugins.if(shouldMinify, plugins.header(config.license)))
       .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write(config.build.sourcemaps_inline ? '' : '.', {sourceRoot: '../../', includeContent: true})))
-      .pipe(gulp.dest(`${config.bundle.dest}/${path.dirname(fileOut)}`));
+      .pipe(plugins.if(config.bundle.base === false || isMain === false, gulp.dest(`${config.bundle.dest}/${path.dirname(fileOut)}`)))
+      .pipe(plugins.if(config.bundle.base !== false, gulp.dest(`${config.bundle.dest}/${config.bundle.main_base}`)));
   }
 
   /**
