@@ -307,6 +307,9 @@ export default function(gulp, options) {
       debug: config.build.sourcemaps,
     });
 
+    let dest = `${config.bundle.dest}/`;
+    dest += fileOut.replace(`/^${config.bundle.base}/`, 'omg');
+
     return b.bundle()
       .on('error', (err) => {
         plugins.util.log(plugins.util.colors.red(err.message));
@@ -318,8 +321,7 @@ export default function(gulp, options) {
       .pipe(plugins.if(shouldMinify, plugins.uglify()))
       .pipe(plugins.if(shouldMinify, plugins.header(config.license)))
       .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write(config.build.sourcemaps_inline ? '' : '.', {sourceRoot: '../../', includeContent: true})))
-      .pipe(plugins.if(config.bundle.base === false || isMain === false, gulp.dest(`${config.bundle.dest}/${path.dirname(fileOut)}`)))
-      .pipe(plugins.if(config.bundle.base !== false, gulp.dest(`${config.bundle.dest}/${config.bundle.main_base}`)));
+      .pipe(gulp.dest(`${config.bundle.dest}/${path.dirname(fileOut.replace(new RegExp(`^${config.bundle.base}/`), ''))}`));
   }
 
   /**
