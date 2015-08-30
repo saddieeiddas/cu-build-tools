@@ -87,6 +87,8 @@ export default function(gulp, options) {
               },
             ],
           }),
+          require('./../util/connectDisableCache')(),
+          require('connect-nocache')(),
         ];
       },
     });
@@ -290,6 +292,10 @@ export default function(gulp, options) {
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write('', {includeContent: true})))
           .pipe(gulp.dest(`${config.lib.dest}/${config.lib.sass_dest}`));
         streams.push(mainCssStream);
+        const copyStream = gulp.src(`${config.src}/**/*.scss`, {base: `${config.src}/${config.lib.sass_base}`, nodir: true})
+          .pipe(plugins.plumber(plumberOpts))
+          .pipe(gulp.dest(`${config.lib.dest}/${config.lib.sass_dest}`));
+        streams.push(copyStream);
       }
 
       if (config.lib.copy) {
