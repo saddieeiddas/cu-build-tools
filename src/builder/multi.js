@@ -106,6 +106,8 @@ export default function(gulp, options) {
               },
             ],
           }),
+          require('./../util/connectDisableCache')(),
+          require('connect-nocache')(),
         ];
       },
     });

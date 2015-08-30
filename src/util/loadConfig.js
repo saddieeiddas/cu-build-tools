@@ -243,16 +243,15 @@ function loadConfig(custom) {
       if (config.type === 'library' && config.build.publish === false) {
         config.server.root = config.path;
       } else if (config.type === 'multi') {
-        config.server.root = config.publish.dest;
+        config.server.root = path.resolve(config.publish.dest);
       } else if (config.build.publish || config.build.is_multi) {
-        config.server.root = config.publish.dest + '/' + config.publish.target;
+        config.server.root = path.resolve(config.publish.dest + '/' + config.publish.target);
       } else if (config.bundle) {
-        config.server.root = config.bundle.dest;
+        config.server.root = path.resolve(config.bundle.dest);
       } else {
-        config.server.root = '';
+        config.server.root = path.resolve('');
       }
     }
-    config.server.root = path.resolve(`${config.path}/${config.server.root}`);
 
     if (config.type === 'library') {
       config.build.compress = true;
@@ -296,12 +295,17 @@ function loadConfig(custom) {
 
     if (config.lib.copy === true) {
       config.lib.copy = [
-        `${config.src}/**/!(*.js|*.jsx|*.ts|*.tsx|*.ui)`,
+        `${config.src}/**/!(*.js|*.jsx|*.ts|*.tsx|*.ui|*.scss)`,
       ];
     }
 
     if (config.server.inject.scripts_before === true) {
-      config.server.inject.scripts_before = [require.resolve('cu-fake-api')];
+      if (fs.existsSync(`${config.path}/node_modules/cu-fake-api/package.json`)) {
+        const fakeAPI = require(`${config.path}/node_modules/cu-fake-api/package.json`);
+        config.server.inject.scripts_before = [path.resolve(`${config.path}/node_modules/cu-fake-api/${fakeAPI.main}`)];
+      } else {
+        config.server.inject.scripts_before = [require.resolve('cu-fake-api')];
+      }
     }
 
     if (config.server.inject.scripts_after === true) {
