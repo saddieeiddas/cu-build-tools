@@ -9,7 +9,7 @@ import path from 'path';
 import globby from 'globby';
 import extend from 'extend';
 import util from 'gulp-util';
-import chug from 'gulp-chug';
+import chug from 'gulp-chug-pretty';
 import is from 'is_js';
 
 /**
