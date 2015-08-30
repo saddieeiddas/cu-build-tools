@@ -70,8 +70,18 @@ export default function(gulp, options) {
    */
   function server() {
     plugins.util.log('Starting Server In: ' + config.server.root);
-    const fakeAPI = require.resolve('cu-fake-api');
-    const fakeAPIContents = fs.readFileSync(fakeAPI, 'utf8');
+    const scriptsBefore = [];
+    const scriptsAfter = [];
+    config.server.inject.scripts_before.forEach((script) => {
+      const scriptContent = fs.readFileSync(script, 'utf8');
+      scriptsBefore.push(`<script>${scriptContent}</script>`);
+      plugins.util.log(`Injecting Script Before: ${script}`);
+    });
+    config.server.inject.scripts_after.forEach((script) => {
+      const scriptContent = fs.readFileSync(script, 'utf8');
+      scriptsAfter.push(`<script>${scriptContent}</script>`);
+      plugins.util.log(`Injecting Script After: ${script}`);
+    });
     plugins.connect.server({
       root: config.server.root,
       port: config.server.port,
@@ -82,7 +92,14 @@ export default function(gulp, options) {
             rules: [
               {
                 match: /<head>/ig,
-                snippet: `<script>${fakeAPIContents}</script>`,
+                snippet: scriptsBefore.join('\n'),
+                fn: (w, s) => {
+                  return w + s;
+                },
+              },
+              {
+                match: /<\/body>/ig,
+                snippet: scriptsAfter.join('\n'),
                 fn: (w, s) => {
                   return w + s;
                 },
