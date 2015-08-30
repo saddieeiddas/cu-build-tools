@@ -68,6 +68,10 @@ function loadConfig(custom) {
         server: {
           root: null,
           port: 9000,
+          inject: {
+            scripts_before: true,
+            scripts_after: true,
+          },
         },
         build: {
           compress: false,
@@ -294,6 +298,14 @@ function loadConfig(custom) {
       config.lib.copy = [
         `${config.src}/**/!(*.js|*.jsx|*.ts|*.tsx|*.ui)`,
       ];
+    }
+
+    if (config.server.inject.scripts_before === true) {
+      config.server.inject.scripts_before = [require.resolve('cu-fake-api')];
+    }
+
+    if (config.server.inject.scripts_after === true) {
+      config.server.inject.scripts_after = [];
     }
 
     config.processed = true;
