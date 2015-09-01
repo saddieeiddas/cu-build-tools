@@ -41,6 +41,7 @@ function loadConfig(custom) {
         dest: 'dist',
         base: '',
         main: true,
+        browserify: true,
         stylus: false,
         stylus_base: 'style',
         stylus_dest: 'css',

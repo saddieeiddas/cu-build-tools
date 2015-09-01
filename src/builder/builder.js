@@ -371,8 +371,10 @@ export default function(gulp, options) {
     } else {
       const streams = [];
 
-      const browserifyStreams = browserify();
-      streams.push(browserifyStreams);
+      if (config.bundle.browserify) {
+        const browserifyStreams = browserify();
+        streams.push(browserifyStreams);
+      }
 
       if (config.bundle.stylus) {
         const stylusStream = gulp.src([`${config.tmp}/**/*.css`, `!${config.tmp}/main.css`, `!${config.tmp}/css/main.css`, `!${config.tmp}/style/main.css`], {base: `${config.tmp}/${config.bundle.stylus_base}`})
