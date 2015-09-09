@@ -4,12 +4,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-'use strict';
-
-module.exports.auto = require('./lib/auto');
-module.exports.builder = require('./lib/builder/builder');
-module.exports.muulti = require('./lib/builder/multi');
-module.exports.util = {
-  config: require('./lib/util/config'),
-  prefix: require('./lib/util/prefix')
+module.exports = {
+  auto: require('./lib/auto'),
+  builder: require('./lib/builder/builder'),
+  multi: require('./lib/builder/multi'),
+  util: {
+    loadConfig: require('./lib/util/loadConfig'),
+  },
 };
