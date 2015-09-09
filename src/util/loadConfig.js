@@ -70,8 +70,8 @@ function loadConfig(custom) {
           root: null,
           port: 9000,
           inject: {
-            scripts_before: true,
-            scripts_after: true,
+            scripts_before: [],
+            scripts_after: [],
           },
         },
         build: {
@@ -298,19 +298,6 @@ function loadConfig(custom) {
       config.lib.copy = [
         `${config.src}/**/!(*.js|*.jsx|*.ts|*.tsx|*.ui|*.scss)`,
       ];
-    }
-
-    if (config.server.inject.scripts_before === true) {
-      if (fs.existsSync(`${config.path}/node_modules/cu-fake-api/package.json`)) {
-        const fakeAPI = require(`${config.path}/node_modules/cu-fake-api/package.json`);
-        config.server.inject.scripts_before = [path.resolve(`${config.path}/node_modules/cu-fake-api/${fakeAPI.main}`)];
-      } else {
-        config.server.inject.scripts_before = [require.resolve('cu-fake-api')];
-      }
-    }
-
-    if (config.server.inject.scripts_after === true) {
-      config.server.inject.scripts_after = [];
     }
 
     config.processed = true;
