@@ -234,7 +234,7 @@ export default function(gulp, options) {
     if (config.compile.stylus) {
       compilers.push('compile:stylus');
     }
-    return sequence('clean:tmp', 'compile:before', compilers, 'compile:dts', 'compile:after', cb);
+    return sequence('install:vs', 'clean:tmp', 'compile:before', compilers, 'compile:dts', 'compile:after', cb);
   }
 
   /**
