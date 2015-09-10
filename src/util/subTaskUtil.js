@@ -161,16 +161,15 @@ export function executeTask(gulp, options, cb) {
  *    task: the task to execute
  *    args: the override arguments to pass to chug
  */
-export function executeTaskOnAllComponents(gulp, options, cb) {
+export function executeTaskOnAllComponents(gulp, options) {
   const gulps = findComponentDirectories(options.path).map((dir) => dir + '/gulpfile.js');
-  gulp.src(gulps, {'read': false})
+  return gulp.src(gulps, {'read': false})
     .pipe(chug({
       tasks: [options.task],
       args: getSubTaskArguments({
         args: options.args || {},
       }),
-    }))
-    .on('end', cb);
+    }));
 }
 
 const subTaskUtil = {

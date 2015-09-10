@@ -90,6 +90,7 @@ function loadConfig(custom) {
           dest: 'publish',
           target: true,
         },
+        libraries: {},
         license: [
           '/*',
           ' * This Source Code Form is subject to the terms of the Mozilla Public',

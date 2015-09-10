@@ -46,6 +46,8 @@ export default function(proj, opt = {}) {
         return;
       }
 
+      files.sort();
+
       try {
         const dom = new DOMParser().parseFromString(content);
         const target = dom.getElementById('vsgen-target');
