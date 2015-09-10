@@ -52,7 +52,7 @@ module.exports = {
   path: __dirname,
   name: name,
 };
- 
+
 ```
 
 **`gulpfile.js`** *Minimal Configuration*
@@ -216,6 +216,33 @@ module.exports = {
 };
 ```
 
+##### Injecting Scripts Into Development Server
+
+You might want to inject a mock api to help with development.
+
+You will want a script to inject e.g. `https://github.com/Mehuge/cu-fake-api`
+
+You could install the fake api above with the following command:
+
+```
+npm install git+https://github.com/Mehuge/cu-fake-api --save
+```
+
+You would then want to add the path to the script to your `cu-build.config.js`:
+
+```js
+module.exports = {
+  // ...
+  server: {
+    inject: {
+      scripts_before: [require.resolve('cu-fake-api')],
+      scripts_after: []
+    }
+  }
+  // ...
+}
+```
+
 ---
 
 #### Bundle Configuration Structure
@@ -225,15 +252,18 @@ module.exports = {
 ```js
 bundle: {
   dest: 'dist', // the destination folder for bundle (will be overridden by publish.dest+publish.target during a publish
+  base: '', // the base for bundling (will determine where the output is placed)
   main: true, // the tmp in path (AUTO generated when set to true)
+  browserify: true, // enable/disable browserify bundle
   stylus: false, // if stylus should be copied
   stylus_base: 'style', // the base directory within src for stylus
   stylus_dest: '', // the target directory for stylus
   sass: false, // if sass should be copied
   sass_base: 'sass', // the base directory within src for sass
-  sass_dest: '', // the target directory for sass
+  sass_dest: 'css', // the target directory for sass
   copy: true, // array of file globs (or false if no copy) setting to true will auto populate the copy globs
   copy_base: '', // the base (within src) directory for files to copy.
+  css_rename_main: true, // will rename the main css file to name of module/library
 }
 ```
 
@@ -273,6 +303,10 @@ lib: {
   server: {
     root: null, // the server root path
     port: 9000, // the server port
+    inject: {
+      scripts_before: [], // array of paths to scripts to inject before
+      scripts_after: [], // array of paths to scripts to inject after
+    },
   },
   build: {
     install_npm: true, // if npm should be installed during install task

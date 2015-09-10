@@ -1,6 +1,6 @@
 {
   "name": "cu-build-tools",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "",
   "license": "MPL-2.0",
   "main": "index.js",
@@ -18,7 +18,6 @@
     "browserify": "11.0.0",
     "connect-inject": "^0.4.0",
     "connect-nocache": "^1.1.0",
-    "cu-fake-api": "git+https://github.com/Mehuge/cu-fake-api.git#master",
     "del": "1.2.0",
     "dts-bundle": "^0.3.0",
     "eslint": "1.2.1",
