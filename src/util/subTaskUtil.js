@@ -91,9 +91,13 @@ function resolveTask(gulp, root) {
  */
 export function createArgument(argv, argName) {
   const args = [];
-  if (argv[argName]) {
-    args.push('--' + argName);
-    if (typeof argv[argName] !== 'boolean') {
+  if (is.not.undefined(argv[argName])) {
+    if (argv[argName] === true) {
+      args.push('--' + argName);
+    } else if (argv[argName] === false) {
+      args.push('--no-' + argName);
+    } else {
+      args.push('--' + argName);
       args.push(argv[argName]);
     }
   }
@@ -125,6 +129,7 @@ export function getSubTaskArguments(options) {
   subArgs = subArgs.concat(createArgument(argv, 'sourcemaps'));
   subArgs = subArgs.concat(createArgument(argv, 'sourcemaps-inline'));
   subArgs = subArgs.concat(createArgument(argv, 'ui-nested'));
+  subArgs = subArgs.concat(createArgument(argv, 'user-ui'));
 
   return subArgs;
 }

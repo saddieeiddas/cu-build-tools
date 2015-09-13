@@ -77,14 +77,14 @@ export default function(gulp, options) {
    * Publish
    */
   function publish(cb) {
-    sequence('clean', 'publish:all', cb);
+    sequence('publish:all', cb);
   }
 
   /**
    * Clean
    */
   function clean(cb) {
-    plugins.del([
+    return plugins.del([
       config.publish.dest + '/**/*',
       config.publish.dest,
     ], cb);

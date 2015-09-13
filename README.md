@@ -115,6 +115,12 @@ This will install/generate npm dependencies, tsd and VS project.
 
 #### Command Line Arguments
 
+##### `--user-ui`
+
+This will make the `publish` command send files to the User UI directory at
+`%LocalAppData%/CSE/CamelotUnchained/4/INTERFACE`. You can provide a channel number
+which will change the destination channel. e.g. `--user-ui 10` for Wyrmling.
+
 ##### `--port ****`
 
 You can override the port used for the connect server e.g. `gulp server --port 9001`
