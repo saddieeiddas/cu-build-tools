@@ -208,23 +208,26 @@ function loadConfig(custom) {
     // look for multi build, publish configuration
     if (fs.existsSync(`../${cuBuildConfig}`)) {
       const publishConfig = require(`${config.path}/../${cuBuildConfig}`);
-      config.publish.dest =  path.relative(config.path, `${publishConfig.path}/${publishConfig.publish.dest}`);
+      config.publish.dest =  path.relative(config.path, `${publishConfig.publish.dest}`);
       config.build.is_multi = true;
       if (is.not.undefined(publishConfig.build) && is.not.undefined(publishConfig.build.ui_nested)) {
         config.build.ui_nested = publishConfig.build.ui_nested;
       }
     } else if (fs.existsSync(`../../${cuBuildConfig}`)) {
       const publishConfig = require(`${config.path}/../../${cuBuildConfig}`);
-      config.publish.dest =  path.relative(config.path, `${publishConfig.path}/${publishConfig.publish.dest}`);
+      config.publish.dest =  path.relative(config.path, `${publishConfig.publish.dest}`);
       config.build.is_multi = true;
       if (is.not.undefined(publishConfig.build) && is.not.undefined(publishConfig.build.ui_nested)) {
         config.build.ui_nested = publishConfig.build.ui_nested;
       }
     }
-    // make sure path is no more than 3 levels higher (as we will need to use force)
-    // this will allow publish directory to be one level higher that the top multi project
-    if (config.publish.dest.indexOf('../../../../') === 0 || config.publish.dest.indexOf('..\\..\\..\\..\\') === 0) {
-      config.publish.dest = 'publish';
+
+    if (argv['user-ui']) {
+      if (argv['user-ui'] === true) {
+        config.publish.dest = path.resolve(`${process.env.LocalAppData}/CSE/CamelotUnchained/4/INTERFACE`);
+      } else {
+        config.publish.dest = path.resolve(`${process.env.LocalAppData}/CSE/CamelotUnchained/${argv['user-ui']}/INTERFACE`);
+      }
     }
 
     // work out target within publish dest

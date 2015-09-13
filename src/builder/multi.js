@@ -77,7 +77,7 @@ export default function(gulp, options) {
    * Publish
    */
   function publish(cb) {
-    sequence('clean', 'publish:all', cb);
+    sequence('publish:all', cb);
   }
 
   /**
