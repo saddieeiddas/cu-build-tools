@@ -37,7 +37,7 @@ function watch() {
 }
 
 function build(cb) {
-  sequence('clean', 'compile', cb);
+  return sequence('clean', 'compile', cb);
 }
 
 function compile() {
@@ -56,7 +56,7 @@ function lint() {
 }
 
 function clean(cb) {
-  plugins.del([
+  return plugins.del([
     './lib/**/*',
     './lib',
   ], cb);

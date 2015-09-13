@@ -84,7 +84,7 @@ export default function(gulp, options) {
    * Clean
    */
   function clean(cb) {
-    plugins.del([
+    return plugins.del([
       config.publish.dest + '/**/*',
       config.publish.dest,
     ], cb);

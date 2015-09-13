@@ -98,10 +98,10 @@ export default function(gulp, options) {
    * Clean Library Directory
    */
   function cleanLib(cb) {
-    if (config.lib) {
-      plugins.del([`${config.lib.dest}/**/*`, config.lib.dest], {force: true}, cb);
-    } else {
+    if (!config.lib) {
       cb();
+    } else {
+      return plugins.del([`${config.lib.dest}/**/*`, config.lib.dest], {force: true}, cb);
     }
   }
 
@@ -109,10 +109,10 @@ export default function(gulp, options) {
    * Clean Bundle Directory
    */
   function cleanBundle(cb) {
-    if (config.bundle) {
-      plugins.del([`${config.bundle.dest}/**/*`, config.bundle.dest], {force: true}, cb);
-    } else {
+    if (!config.bundle) {
       cb();
+    } else {
+      return plugins.del([`${config.bundle.dest}/**/*`, config.bundle.dest], {force: true}, cb);
     }
   }
 
@@ -120,7 +120,7 @@ export default function(gulp, options) {
    * Clean Temporary Directory
    */
   function cleanTmp(cb) {
-    plugins.del([config.tmp + '/**/*', config.tmp], {force: true}, cb);
+    return plugins.del([config.tmp + '/**/*', config.tmp], {force: true}, cb);
   }
 
   /**
