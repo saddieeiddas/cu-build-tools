@@ -180,17 +180,17 @@ function loadConfig(custom) {
       config.build.server = !!argv.server;
     }
 
+    if (is.not.undefined(argv.install)) {
+      config.build.install_npm = argv.install;
+      config.build.install_npm = argv.install;
+    }
+
     if (is.not.undefined(argv['install-npm'])) {
       config.build.install_npm = argv['install-npm'];
     }
 
     if (is.not.undefined(argv['install-tsd'])) {
       config.build.install_tsd = argv['install-tsd'];
-    }
-
-    if (is.not.undefined(argv.install)) {
-      config.build.install_npm = argv.install;
-      config.build.install_npm = argv.install;
     }
 
     if (is.not.undefined(argv.sourcemaps)) {

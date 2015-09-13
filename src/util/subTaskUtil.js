@@ -91,9 +91,13 @@ function resolveTask(gulp, root) {
  */
 export function createArgument(argv, argName) {
   const args = [];
-  if (argv[argName]) {
-    args.push('--' + argName);
-    if (typeof argv[argName] !== 'boolean') {
+  if (is.not.undefined(argv[argName])) {
+    if (argv[argName] === true) {
+      args.push('--' + argName);
+    } else if (argv[argName] === false) {
+      args.push('--no-' + argName);
+    } else {
+      args.push('--' + argName);
       args.push(argv[argName]);
     }
   }
