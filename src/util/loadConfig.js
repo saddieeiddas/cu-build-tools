@@ -182,7 +182,7 @@ function loadConfig(custom) {
 
     if (is.not.undefined(argv.install)) {
       config.build.install_npm = argv.install;
-      config.build.install_npm = argv.install;
+      config.build.install_tsd = argv.install;
     }
 
     if (is.not.undefined(argv['install-npm'])) {
