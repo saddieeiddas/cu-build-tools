@@ -148,6 +148,7 @@ export default function(gulp, options) {
     });
 
     const tsResult = gulp.src(config.glob.ts, {base: config.src})
+      .pipe(plugins.eol('\n')) // force eol to \n first to ensure that sourcemaps content doesn't change depending on checked out line endings
       .pipe(plugins.plumber(plumberOpts))
       .pipe(plugins.sourcemaps.init({loadMaps: true}))
       .pipe(plugins.typescript(tsProject));
@@ -216,6 +217,7 @@ export default function(gulp, options) {
    */
   function compileSass() {
     return gulp.src(config.glob.sass)
+      .pipe(plugins.eol('\n')) // force eol to \n first to ensure that sourcemaps content doesn't change depending on checked out line endings
       .pipe(plugins.sourcemaps.init())
       .pipe(plugins.sass().on('error', plugins.sass.logError))
       .pipe(plugins.sourcemaps.write('.', {includeContent: true}))
