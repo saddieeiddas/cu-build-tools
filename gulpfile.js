@@ -29,7 +29,7 @@ gulp.task('clean', clean);
 gulp.task('copy', copy);
 
 function defaultTask(cb) {
-  sequence(['lint', 'build'], 'copy', cb);
+  sequence(['lint', 'build'], cb);
 }
 
 function watch() {
@@ -37,7 +37,7 @@ function watch() {
 }
 
 function build(cb) {
-  return sequence('clean', 'compile', cb);
+  return sequence('clean', 'compile', 'copy', cb);
 }
 
 function compile() {
