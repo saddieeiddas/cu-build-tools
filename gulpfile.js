@@ -46,6 +46,7 @@ function compile() {
     .pipe(plugins.sourcemaps.init({loadMaps: true}))
     .pipe(plugins.babel())
     .pipe(plugins.sourcemaps.write())
+    .pipe(plugins.eol('\n'))
     .pipe(gulp.dest('./lib'));
 }
 

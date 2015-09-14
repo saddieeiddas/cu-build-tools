@@ -1,6 +1,6 @@
 {
   "name": "cu-build-tools",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "",
   "license": "MPL-2.0",
   "main": "index.js",
@@ -33,6 +33,7 @@
     "gulp-chug-pretty": "^0.1.1",
     "gulp-connect": "^2.2.0",
     "gulp-debug": "^2.1.0",
+    "gulp-eol": "^0.1.1",
     "gulp-eslint": "^1.0.0",
     "gulp-header": "^1.7.1",
     "gulp-if": "^1.2.5",
