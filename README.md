@@ -24,7 +24,7 @@ You will need Git on your path. One way to do this is to install [Github For Win
 
 ```sh
 npm install gulp -g
-npm install git+https://github.com/csegames/cu-build-tools.git --save-dev
+npm install cu-build-tools --save-dev
 ```
 
 > if you need to develop with your own fork or the mod squad fork, just update the url to point to the right repository
