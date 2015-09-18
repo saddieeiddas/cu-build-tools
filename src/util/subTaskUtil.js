@@ -44,7 +44,6 @@ export function findComponentDirectories(root) {
   const globs = [
     root + '/*/cu-build.config.js',
     root + '/*/*/cu-build.config.js',
-    root + '/*/*/*/cu-build.config.js',
   ];
   const directories = globby.sync(globs).map((p) => path.dirname(p));
   return directories;
