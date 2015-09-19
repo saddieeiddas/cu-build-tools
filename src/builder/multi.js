@@ -38,6 +38,11 @@ export default function(gulp, options) {
     cb();
   }
 
+  function list(cb) {
+    plugins.util.log('Modules & Libraries\n' + plugins.indentString(plugins.prettyjson.render(subTaskUtil.findComponentDirectories(config.path), {}), ' ', 11));
+    cb();
+  }
+
   /**
    * Install & Update Everything
    */
@@ -158,6 +163,7 @@ export default function(gulp, options) {
   gulp.task('server', server);
   gulp.task('debug', ['debug:config']);
   gulp.task('debug:config', debugConfig);
+  gulp.task('list', list);
 
   /**
    * Register Sub Task if Required
