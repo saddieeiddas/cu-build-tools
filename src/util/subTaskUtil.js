@@ -42,8 +42,8 @@ export function resolveComponentDirectory(root, component) {
 export function findComponentDirectories(root) {
   // search for all components containing a cu-build.config.js
   const globs = [
-    root + '/*/cu-build.config.js',
     root + '/*/*/cu-build.config.js',
+    root + '/*/cu-build.config.js',
   ];
   const directories = globby.sync(globs).map((p) => path.dirname(p));
   return directories;
