@@ -129,6 +129,7 @@ export function getSubTaskArguments(options) {
   subArgs = subArgs.concat(createArgument(argv, 'sourcemaps-inline'));
   subArgs = subArgs.concat(createArgument(argv, 'ui-nested'));
   subArgs = subArgs.concat(createArgument(argv, 'user-ui'));
+  subArgs = subArgs.concat(createArgument(argv, 'cse'));
 
   return subArgs;
 }

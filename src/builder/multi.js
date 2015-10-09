@@ -69,20 +69,13 @@ export default function(gulp, options) {
   }
 
   /**
-   * Publish Sub Modules
+   * Publish
    */
-  function publishAll() {
+  function publish() {
     return subTaskUtil.executeTaskOnAllComponents(gulp, {
       path: config.path,
       task: 'publish',
     });
-  }
-
-  /**
-   * Publish
-   */
-  function publish(cb) {
-    sequence('publish:all', cb);
   }
 
   /**
@@ -157,8 +150,7 @@ export default function(gulp, options) {
   gulp.task('install', install);
   gulp.task('install:libraries', installLibraries);
   gulp.task('install:subdirectories', installSubDirectories);
-  gulp.task('publish', ['install'], publish);
-  gulp.task('publish:all', publishAll);
+  gulp.task('publish', publish);
   gulp.task('clean', clean);
   gulp.task('server', server);
   gulp.task('debug', ['debug:config']);
