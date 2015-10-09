@@ -11,6 +11,8 @@ import minimist from 'minimist';
 import is from 'is_js';
 
 const cuBuildConfig = 'cu-build.config.js';
+const interfaceModuleDirectory = 'interface';
+const interfaceLibraryDirectory = 'interface-lib';
 
 function loadConfig(custom) {
   let config = {};
@@ -70,8 +72,8 @@ function loadConfig(custom) {
           root: null,
           port: 9000,
           inject: {
-            scripts_before: true,
-            scripts_after: true,
+            scripts_before: [],
+            scripts_after: [],
           },
         },
         build: {
@@ -88,8 +90,10 @@ function loadConfig(custom) {
         },
         publish: {
           dest: 'publish',
+          cse_dest: 'publish',
           target: true,
         },
+        libraries: {},
         license: [
           '/*',
           ' * This Source Code Form is subject to the terms of the Mozilla Public',
@@ -174,9 +178,13 @@ function loadConfig(custom) {
       config.build.publish = !!argv.publish;
     }
 
-
     if (is.not.undefined(argv.server)) {
       config.build.server = !!argv.server;
+    }
+
+    if (is.not.undefined(argv.install)) {
+      config.build.install_npm = argv.install;
+      config.build.install_tsd = argv.install;
     }
 
     if (is.not.undefined(argv['install-npm'])) {
@@ -185,11 +193,6 @@ function loadConfig(custom) {
 
     if (is.not.undefined(argv['install-tsd'])) {
       config.build.install_tsd = argv['install-tsd'];
-    }
-
-    if (is.not.undefined(argv.install)) {
-      config.build.install_npm = argv.install;
-      config.build.install_npm = argv.install;
     }
 
     if (is.not.undefined(argv.sourcemaps)) {
@@ -207,31 +210,40 @@ function loadConfig(custom) {
     // look for multi build, publish configuration
     if (fs.existsSync(`../${cuBuildConfig}`)) {
       const publishConfig = require(`${config.path}/../${cuBuildConfig}`);
-      config.publish.dest =  path.relative(config.path, `${publishConfig.path}/${publishConfig.publish.dest}`);
+      config.publish.dest =  path.relative(config.path, `${publishConfig.publish.dest}`);
       config.build.is_multi = true;
+      if (argv.cse && argv.cse === true) {
+        config.publish.dest = path.relative(config.path, `${publishConfig.publish.cse_dest}`);
+      }
       if (is.not.undefined(publishConfig.build) && is.not.undefined(publishConfig.build.ui_nested)) {
         config.build.ui_nested = publishConfig.build.ui_nested;
       }
     } else if (fs.existsSync(`../../${cuBuildConfig}`)) {
       const publishConfig = require(`${config.path}/../../${cuBuildConfig}`);
-      config.publish.dest =  path.relative(config.path, `${publishConfig.path}/${publishConfig.publish.dest}`);
+      config.publish.dest =  path.relative(config.path, `${publishConfig.publish.dest}`);
       config.build.is_multi = true;
+      if (argv.cse && argv.cse === true) {
+        config.publish.dest = path.relative(config.path, `${publishConfig.publish.cse_dest}`);
+      }
       if (is.not.undefined(publishConfig.build) && is.not.undefined(publishConfig.build.ui_nested)) {
         config.build.ui_nested = publishConfig.build.ui_nested;
       }
     }
-    // make sure path is no more than 3 levels higher (as we will need to use force)
-    // this will allow publish directory to be one level higher that the top multi project
-    if (config.publish.dest.indexOf('../../../../') === 0 || config.publish.dest.indexOf('..\\..\\..\\..\\') === 0) {
-      config.publish.dest = 'publish';
+
+    if (argv['user-ui']) {
+      if (argv['user-ui'] === true) {
+        config.publish.dest = path.resolve(`${process.env.LocalAppData}/CSE/CamelotUnchained/4`);
+      } else {
+        config.publish.dest = path.resolve(`${process.env.LocalAppData}/CSE/CamelotUnchained/${argv['user-ui']}`);
+      }
     }
 
     // work out target within publish dest
     if (config.publish.target === true) {
       if (config.type === 'library') {
-        config.publish.target = `lib/${config.name}`;
+        config.publish.target = `${interfaceLibraryDirectory}/${config.name}`;
       } else {
-        config.publish.target = config.name;
+        config.publish.target = `${interfaceModuleDirectory}/${config.name}`;
       }
     }
 
@@ -298,19 +310,6 @@ function loadConfig(custom) {
       config.lib.copy = [
         `${config.src}/**/!(*.js|*.jsx|*.ts|*.tsx|*.ui|*.scss)`,
       ];
-    }
-
-    if (config.server.inject.scripts_before === true) {
-      if (fs.existsSync(`${config.path}/node_modules/cu-fake-api/package.json`)) {
-        const fakeAPI = require(`${config.path}/node_modules/cu-fake-api/package.json`);
-        config.server.inject.scripts_before = [path.resolve(`${config.path}/node_modules/cu-fake-api/${fakeAPI.main}`)];
-      } else {
-        config.server.inject.scripts_before = [require.resolve('cu-fake-api')];
-      }
-    }
-
-    if (config.server.inject.scripts_after === true) {
-      config.server.inject.scripts_after = [];
     }
 
     config.processed = true;

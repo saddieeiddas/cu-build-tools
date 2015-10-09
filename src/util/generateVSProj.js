@@ -46,6 +46,8 @@ export default function(proj, opt = {}) {
         return;
       }
 
+      files.sort();
+
       try {
         const dom = new DOMParser().parseFromString(content);
         const target = dom.getElementById('vsgen-target');
@@ -60,7 +62,7 @@ export default function(proj, opt = {}) {
           const ext = path.extname(file);
           const tagName = config.tags.hasOwnProperty(ext) ? config.tags[ext] : config.tags['..'];
           const element = dom.createElementNS(target.namespaceURI, tagName);
-          element.setAttribute('Include', file);
+          element.setAttribute('Include', file.replace(/\//g, '\\'));
           target.appendChild(element);
         }
 

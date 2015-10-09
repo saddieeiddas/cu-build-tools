@@ -8,6 +8,7 @@ import gulpLoadPlugins from 'gulp-load-plugins';
 import loadConfig from './../util/loadConfig';
 import createSequence from 'run-sequence';
 import generateVSProj from './../util/generateVSProj';
+import npmUpdate from './../util/npmUpdate';
 import typescript from 'typescript';
 import path from 'path';
 import fs from 'fs';
@@ -98,10 +99,10 @@ export default function(gulp, options) {
    * Clean Library Directory
    */
   function cleanLib(cb) {
-    if (config.lib) {
-      plugins.del([`${config.lib.dest}/**/*`, config.lib.dest], {force: true}, cb);
-    } else {
+    if (!config.lib) {
       cb();
+    } else {
+      return plugins.del([`${config.lib.dest}/**/*`, config.lib.dest], {force: true}, cb);
     }
   }
 
@@ -109,10 +110,10 @@ export default function(gulp, options) {
    * Clean Bundle Directory
    */
   function cleanBundle(cb) {
-    if (config.bundle) {
-      plugins.del([`${config.bundle.dest}/**/*`, config.bundle.dest], {force: true}, cb);
-    } else {
+    if (!config.bundle) {
       cb();
+    } else {
+      return plugins.del([`${config.bundle.dest}/**/*`, config.bundle.dest], {force: true}, cb);
     }
   }
 
@@ -120,7 +121,7 @@ export default function(gulp, options) {
    * Clean Temporary Directory
    */
   function cleanTmp(cb) {
-    plugins.del([config.tmp + '/**/*', config.tmp], {force: true}, cb);
+    return plugins.del([config.tmp + '/**/*', config.tmp], {force: true}, cb);
   }
 
   /**
@@ -132,6 +133,7 @@ export default function(gulp, options) {
       .pipe(plugins.sourcemaps.init({loadMaps: true}))
       .pipe(plugins.babel())
       .pipe(plugins.sourcemaps.write({sourceRoot: '../', includeContent: true}))
+      .pipe(plugins.eol('\n'))
       .pipe(gulp.dest(config.tmp));
     return plugins.merge2([jsStream]);
   }
@@ -147,6 +149,7 @@ export default function(gulp, options) {
     });
 
     const tsResult = gulp.src(config.glob.ts, {base: config.src})
+      .pipe(plugins.eol('\n')) // force eol to \n first to ensure that sourcemaps content doesn't change depending on checked out line endings
       .pipe(plugins.plumber(plumberOpts))
       .pipe(plugins.sourcemaps.init({loadMaps: true}))
       .pipe(plugins.typescript(tsProject));
@@ -157,11 +160,13 @@ export default function(gulp, options) {
       .pipe(plugins.sourcemaps.init({loadMaps: true}))
       .pipe(plugins.babel())
       .pipe(plugins.sourcemaps.write({sourceRoot: '../', includeContent: true}))
+      .pipe(plugins.eol('\n'))
       .pipe(gulp.dest(config.tmp));
 
     const dtsStream = tsResult.dts
       .pipe(plugins.plumber(plumberOpts))
       .pipe(plugins.replace(`../${config.src}`, `../../${config.src}`)) // fixes path to src
+      .pipe(plugins.eol('\n'))
       .pipe(gulp.dest(config.tmp + '/definitions'));
 
     return plugins.merge2([tsStream, dtsStream]);
@@ -190,6 +195,7 @@ export default function(gulp, options) {
       return gulp.src(out)
         .pipe(plugins.plumber(plumberOpts))
         .pipe(plugins.rename(`${config.name}.d.ts`))
+        .pipe(plugins.eol('\n'))
         .pipe(gulp.dest(config.tmp));
     }
   }
@@ -203,6 +209,7 @@ export default function(gulp, options) {
       .pipe(plugins.sourcemaps.init())
       .pipe(plugins.stylus())
       .pipe(plugins.sourcemaps.write({includeContent: true}))
+      .pipe(plugins.eol('\n'))
       .pipe(gulp.dest(config.tmp));
   }
 
@@ -211,9 +218,11 @@ export default function(gulp, options) {
    */
   function compileSass() {
     return gulp.src(config.glob.sass)
+      .pipe(plugins.eol('\n')) // force eol to \n first to ensure that sourcemaps content doesn't change depending on checked out line endings
       .pipe(plugins.sourcemaps.init())
       .pipe(plugins.sass().on('error', plugins.sass.logError))
       .pipe(plugins.sourcemaps.write('.', {includeContent: true}))
+      .pipe(plugins.eol('\n'))
       .pipe(gulp.dest(config.tmp));
   }
 
@@ -234,7 +243,7 @@ export default function(gulp, options) {
     if (config.compile.stylus) {
       compilers.push('compile:stylus');
     }
-    return sequence('clean:tmp', 'compile:before', compilers, 'compile:dts', 'compile:after', cb);
+    return sequence('install:vs', 'clean:tmp', 'compile:before', compilers, 'compile:dts', 'compile:after', cb);
   }
 
   /**
@@ -261,6 +270,7 @@ export default function(gulp, options) {
           .pipe(plugins.plumber(plumberOpts))
           .pipe(plugins.sourcemaps.init({loadMaps: true}))
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write('', {includeContent: true})))
+          .pipe(plugins.eol('\n'))
           .pipe(gulp.dest(`${config.lib.dest}/${config.lib.stylus_dest}`));
         streams.push(stylusStream);
         const mainCssStream = gulp.src([`${config.tmp}/main.css`, `${config.tmp}/css/main.css`, `${config.tmp}/style/main.css`], {base: `${config.tmp}/${config.lib.stylus_base}`})
@@ -271,6 +281,7 @@ export default function(gulp, options) {
             p.extname = '.css';
           })))
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write('', {includeContent: true})))
+          .pipe(plugins.eol('\n'))
           .pipe(gulp.dest(`${config.lib.dest}/${config.lib.stylus_dest}`));
         streams.push(mainCssStream);
       }
@@ -280,6 +291,7 @@ export default function(gulp, options) {
           .pipe(plugins.plumber(plumberOpts))
           .pipe(plugins.sourcemaps.init({loadMaps: true}))
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write('', {includeContent: true})))
+          .pipe(plugins.eol('\n'))
           .pipe(gulp.dest(`${config.lib.dest}/${config.lib.sass_dest}`));
         streams.push(sassStream);
         const mainCssStream = gulp.src([`${config.tmp}/main.css`, `${config.tmp}/css/main.css`, `${config.tmp}/sass/main.css`], {base: `${config.tmp}/${config.lib.sass_base}`})
@@ -290,10 +302,12 @@ export default function(gulp, options) {
             p.extname = '.css';
           })))
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write('', {includeContent: true})))
+          .pipe(plugins.eol('\n'))
           .pipe(gulp.dest(`${config.lib.dest}/${config.lib.sass_dest}`));
         streams.push(mainCssStream);
         const copyStream = gulp.src(`${config.src}/**/*.scss`, {base: `${config.src}/${config.lib.sass_base}`, nodir: true})
           .pipe(plugins.plumber(plumberOpts))
+          .pipe(plugins.eol('\n'))
           .pipe(gulp.dest(`${config.lib.dest}/${config.lib.sass_dest}`));
         streams.push(copyStream);
       }
@@ -344,6 +358,7 @@ export default function(gulp, options) {
       .pipe(plugins.if(shouldMinify, plugins.uglify()))
       .pipe(plugins.if(shouldMinify, plugins.header(config.license)))
       .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write(config.build.sourcemaps_inline ? '' : '.', {sourceRoot: '../../', includeContent: true})))
+      .pipe(plugins.eol('\n'))
       .pipe(gulp.dest(`${config.bundle.dest}/${path.dirname(fileOut.replace(new RegExp(`^${config.bundle.base}/`), ''))}`));
   }
 
@@ -378,10 +393,11 @@ export default function(gulp, options) {
 
       if (config.bundle.stylus) {
         const stylusStream = gulp.src([`${config.tmp}/**/*.css`, `!${config.tmp}/main.css`, `!${config.tmp}/css/main.css`, `!${config.tmp}/style/main.css`], {base: `${config.tmp}/${config.bundle.stylus_base}`})
-            .pipe(plugins.plumber(plumberOpts))
+          .pipe(plugins.plumber(plumberOpts))
           .pipe(plugins.sourcemaps.init({loadMaps: true}))
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write(config.build.sourcemaps_inline ? '' : '.', {includeContent: true})))
-            .pipe(gulp.dest(`${config.bundle.dest}/${config.bundle.stylus_dest}`));
+          .pipe(plugins.eol('\n'))
+          .pipe(gulp.dest(`${config.bundle.dest}/${config.bundle.stylus_dest}`));
         streams.push(stylusStream);
         const mainCssStream = gulp.src([`${config.tmp}/main.css`, `${config.tmp}/css/main.css`, `${config.tmp}/style/main.css`], {base: `${config.tmp}/${config.bundle.stylus_base}`})
           .pipe(plugins.plumber(plumberOpts))
@@ -391,6 +407,7 @@ export default function(gulp, options) {
             p.extname = '.css';
           })))
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write(config.build.sourcemaps_inline ? '' : '.', {includeContent: true})))
+          .pipe(plugins.eol('\n'))
           .pipe(gulp.dest(`${config.bundle.dest}/${config.bundle.stylus_dest}`));
         streams.push(mainCssStream);
       }
@@ -400,6 +417,7 @@ export default function(gulp, options) {
           .pipe(plugins.plumber(plumberOpts))
           .pipe(plugins.sourcemaps.init({loadMaps: true}))
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write(config.build.sourcemaps_inline ? '' : '.', {includeContent: true})))
+          .pipe(plugins.eol('\n'))
           .pipe(gulp.dest(`${config.bundle.dest}/${config.bundle.sass_dest}`));
         streams.push(sassStream);
         const mainCssStream = gulp.src([`${config.tmp}/main.css`, `${config.tmp}/css/main.css`, `${config.tmp}/sass/main.css`], {base: `${config.tmp}/${config.bundle.sass_base}`})
@@ -410,6 +428,7 @@ export default function(gulp, options) {
             p.extname = '.css';
           })))
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write(config.build.sourcemaps_inline ? '' : '.', {includeContent: true})))
+          .pipe(plugins.eol('\n'))
           .pipe(gulp.dest(`${config.bundle.dest}/${config.bundle.sass_dest}`));
         streams.push(mainCssStream);
       }
@@ -422,6 +441,7 @@ export default function(gulp, options) {
       }
 
       const uiStream = gulp.src(config.src + '/*.ui')
+        .pipe(plugins.eol('\n'))
         .pipe(plugins.if(config.build.publish === false, gulp.dest(`${config.bundle.dest}`)))
         .pipe(plugins.if(config.build.publish && config.build.ui_nested, gulp.dest(`${config.bundle.dest}`)))
         .pipe(plugins.if(config.build.publish && config.build.ui_nested === false, gulp.dest(`${config.bundle.dest}/../`)));
@@ -465,7 +485,7 @@ export default function(gulp, options) {
     }  else {
       return gulp.src('package.json')
         .pipe(plugins.debug({title: 'installing:'}))
-        .pipe(plugins.install({production: true}));
+        .pipe(npmUpdate({production: true}));
     }
   }
 

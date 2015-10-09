@@ -42,9 +42,8 @@ export function resolveComponentDirectory(root, component) {
 export function findComponentDirectories(root) {
   // search for all components containing a cu-build.config.js
   const globs = [
-    root + '/*/cu-build.config.js',
     root + '/*/*/cu-build.config.js',
-    root + '/*/*/*/cu-build.config.js',
+    root + '/*/cu-build.config.js',
   ];
   const directories = globby.sync(globs).map((p) => path.dirname(p));
   return directories;
@@ -91,9 +90,13 @@ function resolveTask(gulp, root) {
  */
 export function createArgument(argv, argName) {
   const args = [];
-  if (argv[argName]) {
-    args.push('--' + argName);
-    if (typeof argv[argName] !== 'boolean') {
+  if (is.not.undefined(argv[argName])) {
+    if (argv[argName] === true) {
+      args.push('--' + argName);
+    } else if (argv[argName] === false) {
+      args.push('--no-' + argName);
+    } else {
+      args.push('--' + argName);
       args.push(argv[argName]);
     }
   }
@@ -125,6 +128,8 @@ export function getSubTaskArguments(options) {
   subArgs = subArgs.concat(createArgument(argv, 'sourcemaps'));
   subArgs = subArgs.concat(createArgument(argv, 'sourcemaps-inline'));
   subArgs = subArgs.concat(createArgument(argv, 'ui-nested'));
+  subArgs = subArgs.concat(createArgument(argv, 'user-ui'));
+  subArgs = subArgs.concat(createArgument(argv, 'cse'));
 
   return subArgs;
 }
@@ -161,16 +166,15 @@ export function executeTask(gulp, options, cb) {
  *    task: the task to execute
  *    args: the override arguments to pass to chug
  */
-export function executeTaskOnAllComponents(gulp, options, cb) {
+export function executeTaskOnAllComponents(gulp, options) {
   const gulps = findComponentDirectories(options.path).map((dir) => dir + '/gulpfile.js');
-  gulp.src(gulps, {'read': false})
+  return gulp.src(gulps, {'read': false})
     .pipe(chug({
       tasks: [options.task],
       args: getSubTaskArguments({
         args: options.args || {},
       }),
-    }))
-    .on('end', cb);
+    }));
 }
 
 const subTaskUtil = {

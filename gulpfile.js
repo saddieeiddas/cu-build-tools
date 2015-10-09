@@ -29,7 +29,7 @@ gulp.task('clean', clean);
 gulp.task('copy', copy);
 
 function defaultTask(cb) {
-  sequence(['lint', 'build'], 'copy', cb);
+  sequence(['lint', 'build'], cb);
 }
 
 function watch() {
@@ -37,7 +37,7 @@ function watch() {
 }
 
 function build(cb) {
-  sequence('clean', 'compile', cb);
+  return sequence('clean', 'compile', 'copy', cb);
 }
 
 function compile() {
@@ -46,6 +46,7 @@ function compile() {
     .pipe(plugins.sourcemaps.init({loadMaps: true}))
     .pipe(plugins.babel())
     .pipe(plugins.sourcemaps.write())
+    .pipe(plugins.eol('\n'))
     .pipe(gulp.dest('./lib'));
 }
 
@@ -56,7 +57,7 @@ function lint() {
 }
 
 function clean(cb) {
-  plugins.del([
+  return plugins.del([
     './lib/**/*',
     './lib',
   ], cb);

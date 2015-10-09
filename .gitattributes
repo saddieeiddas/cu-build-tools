@@ -1,0 +1,14 @@
+.gitattributes text
+.gitignore text
+*.txt text
+*.md text
+*.css text
+*.map text
+*.scss text
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+*.html text
+*.ui text
+*.json text

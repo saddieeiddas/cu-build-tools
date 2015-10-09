@@ -9,6 +9,7 @@ import loadConfig from './../util/loadConfig';
 import createSequence from 'run-sequence';
 import subTaskUtil from './../util/subTaskUtil';
 import fs from 'fs';
+import * as gitUtil from './../util/gitUtil';
 
 const plugins = loadPlugins({
   pattern: [
@@ -19,6 +20,8 @@ const plugins = loadPlugins({
     'vinyl-buffer',
     'del',
     'merge2',
+    'prettyjson',
+    'indent-string',
   ],
 });
 
@@ -28,38 +31,58 @@ export default function(gulp, options) {
   const subArgs = {};
 
   /**
-   * Install Sub Modules
+   * Debug Build Configuration
    */
-  function install(cb) {
-    subTaskUtil.executeTaskOnAllComponents(gulp, {
-      path: config.path,
-      task: 'install',
-      args: { install: true },
-    }, cb);
+  function debugConfig(cb) {
+    plugins.util.log('Build Configuration\n' + plugins.indentString(plugins.prettyjson.render(config, {}), ' ', 11));
+    cb();
+  }
+
+  function list(cb) {
+    plugins.util.log('Modules & Libraries\n' + plugins.indentString(plugins.prettyjson.render(subTaskUtil.findComponentDirectories(config.path), {}), ' ', 11));
+    cb();
   }
 
   /**
-   * Publish Sub Modules
+   * Install & Update Everything
    */
-  function publishAll(cb) {
-    subTaskUtil.executeTaskOnAllComponents(gulp, {
+  function install(cb) {
+    sequence('install:libraries', 'install:subdirectories', cb);
+  }
+
+  /**
+   * Run Install on Sub Directories
+   */
+  function installLibraries(cb) {
+    gitUtil.installLibraries(config.libraries, `${config.path}/lib/`, cb);
+  }
+
+  /**
+   * Run Install on Sub Directories
+   */
+  function installSubDirectories() {
+    return subTaskUtil.executeTaskOnAllComponents(gulp, {
       path: config.path,
-      task: 'publish',
-    }, cb);
+      task: 'install',
+      args: { install: true },
+    });
   }
 
   /**
    * Publish
    */
-  function publish(cb) {
-    sequence('clean', 'publish:all', cb);
+  function publish() {
+    return subTaskUtil.executeTaskOnAllComponents(gulp, {
+      path: config.path,
+      task: 'publish',
+    });
   }
 
   /**
    * Clean
    */
   function clean(cb) {
-    plugins.del([
+    return plugins.del([
       config.publish.dest + '/**/*',
       config.publish.dest,
     ], cb);
@@ -117,7 +140,7 @@ export default function(gulp, options) {
    * Default Task
    */
   function defaultTask(cb) {
-    sequence('install', 'publish', cb);
+    sequence('publish', cb);
   }
 
   /**
@@ -125,10 +148,14 @@ export default function(gulp, options) {
    */
   gulp.task('default', defaultTask);
   gulp.task('install', install);
+  gulp.task('install:libraries', installLibraries);
+  gulp.task('install:subdirectories', installSubDirectories);
   gulp.task('publish', publish);
-  gulp.task('publish:all', publishAll);
   gulp.task('clean', clean);
   gulp.task('server', server);
+  gulp.task('debug', ['debug:config']);
+  gulp.task('debug:config', debugConfig);
+  gulp.task('list', list);
 
   /**
    * Register Sub Task if Required
