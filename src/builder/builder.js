@@ -8,6 +8,7 @@ import gulpLoadPlugins from 'gulp-load-plugins';
 import loadConfig from './../util/loadConfig';
 import createSequence from 'run-sequence';
 import generateVSProj from './../util/generateVSProj';
+import npmUpdate from './../util/npmUpdate';
 import typescript from 'typescript';
 import path from 'path';
 import fs from 'fs';
@@ -484,7 +485,7 @@ export default function(gulp, options) {
     }  else {
       return gulp.src('package.json')
         .pipe(plugins.debug({title: 'installing:'}))
-        .pipe(plugins.install({production: true}));
+        .pipe(npmUpdate({production: true}));
     }
   }
 

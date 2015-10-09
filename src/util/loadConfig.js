@@ -11,6 +11,8 @@ import minimist from 'minimist';
 import is from 'is_js';
 
 const cuBuildConfig = 'cu-build.config.js';
+const interfaceModuleDirectory = 'interface';
+const interfaceLibraryDirectory = 'interface-lib';
 
 function loadConfig(custom) {
   let config = {};
@@ -88,6 +90,7 @@ function loadConfig(custom) {
         },
         publish: {
           dest: 'publish',
+          cse_dest: 'publish',
           target: true,
         },
         libraries: {},
@@ -175,7 +178,6 @@ function loadConfig(custom) {
       config.build.publish = !!argv.publish;
     }
 
-
     if (is.not.undefined(argv.server)) {
       config.build.server = !!argv.server;
     }
@@ -210,6 +212,9 @@ function loadConfig(custom) {
       const publishConfig = require(`${config.path}/../${cuBuildConfig}`);
       config.publish.dest =  path.relative(config.path, `${publishConfig.publish.dest}`);
       config.build.is_multi = true;
+      if (argv.cse && argv.cse === true) {
+        config.publish.dest = path.relative(config.path, `${publishConfig.publish.cse_dest}`);
+      }
       if (is.not.undefined(publishConfig.build) && is.not.undefined(publishConfig.build.ui_nested)) {
         config.build.ui_nested = publishConfig.build.ui_nested;
       }
@@ -217,6 +222,9 @@ function loadConfig(custom) {
       const publishConfig = require(`${config.path}/../../${cuBuildConfig}`);
       config.publish.dest =  path.relative(config.path, `${publishConfig.publish.dest}`);
       config.build.is_multi = true;
+      if (argv.cse && argv.cse === true) {
+        config.publish.dest = path.relative(config.path, `${publishConfig.publish.cse_dest}`);
+      }
       if (is.not.undefined(publishConfig.build) && is.not.undefined(publishConfig.build.ui_nested)) {
         config.build.ui_nested = publishConfig.build.ui_nested;
       }
@@ -224,18 +232,18 @@ function loadConfig(custom) {
 
     if (argv['user-ui']) {
       if (argv['user-ui'] === true) {
-        config.publish.dest = path.resolve(`${process.env.LocalAppData}/CSE/CamelotUnchained/4/INTERFACE`);
+        config.publish.dest = path.resolve(`${process.env.LocalAppData}/CSE/CamelotUnchained/4`);
       } else {
-        config.publish.dest = path.resolve(`${process.env.LocalAppData}/CSE/CamelotUnchained/${argv['user-ui']}/INTERFACE`);
+        config.publish.dest = path.resolve(`${process.env.LocalAppData}/CSE/CamelotUnchained/${argv['user-ui']}`);
       }
     }
 
     // work out target within publish dest
     if (config.publish.target === true) {
       if (config.type === 'library') {
-        config.publish.target = `lib/${config.name}`;
+        config.publish.target = `${interfaceLibraryDirectory}/${config.name}`;
       } else {
-        config.publish.target = config.name;
+        config.publish.target = `${interfaceModuleDirectory}/${config.name}`;
       }
     }
 
