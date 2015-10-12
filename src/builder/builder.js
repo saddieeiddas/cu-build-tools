@@ -334,7 +334,6 @@ export default function(gulp, options) {
    * Core Browserify Bundle Process
    */
   function browserifyCore(shouldMinify, fileIn, isMain) {
-    if (!fileIn) gulp.pipe(fileIn);
     let fileOut = fileIn.replace(/^ts\//, 'js/').replace(/\/ts\//, '/js/');
     if (isMain) {
       fileOut = fileOut.replace(path.basename(fileOut, '.js'), config.name);
