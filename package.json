@@ -1,13 +1,13 @@
 {
   "name": "cu-build-tools",
-  "version": "0.1.18",
+  "version": "0.1.20",
   "description": "Camelot Unchained UI Build Tools",
   "license": "MPL-2.0",
   "main": "index.js",
   "contributors": [
     "saddieeiddas <saddie.eiddas@gmail.com>",
     "jcdickinson <jonathan@dickinsons.co.za>",
-    "codecorsair <jb@codecorsair.com>"
+    "JB (codecorsair) <jb@codecorsair.com>"
   ],
   "homepage": "https://github.com/csegames/cu-build-tools",
   "files": [
