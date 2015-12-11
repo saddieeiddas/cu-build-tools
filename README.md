@@ -286,7 +286,8 @@ lib: {
   stylus_dest: '', // the target directory for stylus
   sass: false, // if sass should be copied
   sass_base: 'sass', // the base directory within src for sass
-  sass_dest: '', // the target directory for sass
+  sass_dest: '', // the target directory for copied source sass
+  css_dest: '', // the target directory for compiled css
   copy: false, // array of file globs (or false if no copy)
   copy_base: '', // the base (within src) directory within src for copy
   css_rename_main: false, // if main css files should be renamed to library name
