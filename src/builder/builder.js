@@ -292,7 +292,7 @@ export default function(gulp, options) {
           .pipe(plugins.sourcemaps.init({loadMaps: true}))
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write('', {includeContent: true})))
           .pipe(plugins.eol('\n'))
-          .pipe(gulp.dest(`${config.lib.dest}/${config.lib.sass_dest}`));
+          .pipe(gulp.dest(`${config.lib.dest}/${config.lib.css_dest}`));
         streams.push(sassStream);
         const mainCssStream = gulp.src([`${config.tmp}/main.css`, `${config.tmp}/css/main.css`, `${config.tmp}/sass/main.css`], {base: `${config.tmp}/${config.lib.sass_base}`})
           .pipe(plugins.plumber(plumberOpts))
@@ -303,7 +303,7 @@ export default function(gulp, options) {
           })))
           .pipe(plugins.if(config.build.sourcemaps, plugins.sourcemaps.write('', {includeContent: true})))
           .pipe(plugins.eol('\n'))
-          .pipe(gulp.dest(`${config.lib.dest}/${config.lib.sass_dest}`));
+          .pipe(gulp.dest(`${config.lib.dest}/${config.lib.css_dest}`));
         streams.push(mainCssStream);
         const copyStream = gulp.src(`${config.src}/**/*.scss`, {base: `${config.src}/${config.lib.sass_base}`, nodir: true})
           .pipe(plugins.plumber(plumberOpts))

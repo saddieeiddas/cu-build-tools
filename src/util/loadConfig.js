@@ -35,6 +35,7 @@ function loadConfig(custom) {
         sass: false,
         sass_base: 'sass',
         sass_dest: '',
+        css_dest: '',
         copy: false,
         copy_base: '',
         css_rename_main: false,
