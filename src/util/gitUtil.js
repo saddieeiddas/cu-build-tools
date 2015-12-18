@@ -8,9 +8,11 @@ import git from 'gift';
 import util from 'gulp-util';
 import forEach from 'foreach';
 import path from 'path';
+import minimist from 'minimist';
 
 export function installLibrary(name, url, branch, directory, cb) {
   const repo = git(directory);
+  const argv = minimist(process.argv.slice(2));
   repo.status((statusError, status) => {
     if (statusError) {
       util.log(`${name} cloning from ${url}`);
@@ -30,8 +32,29 @@ export function installLibrary(name, url, branch, directory, cb) {
         }
       });
     } else if (status.clean === false) {
-      util.log(util.colors.red(`ERROR: ${name} working directory is dirty, please checkout files and clean the working directory`));
-      cb();
+      if (argv['git-reset']) {
+        repo.checkout(branch, (checkoutError) => {
+          if (checkoutError) {
+            util.log(util.colors.red(`${name} does not have a branch/tag/commit called ${branch}`));
+            cb();
+          } else {
+            repo.reset('HEAD', {hard: true}, () => {
+              util.log(util.colors.yellow(`${name} working directory is dirty, running reset --hard`));
+              repo.pull('origin', branch, (pullError) => {
+                if (pullError) {
+                  util.log(util.colors.red(`${name} could not pull from origin/${branch}`));
+                } else {
+                  util.log(util.colors.green(`${name} updated against origin/${branch}`));
+                }
+                cb();
+              });
+            });
+          }
+        });
+      } else {
+        util.log(util.colors.red(`ERROR: ${name} working directory is dirty, please checkout files and clean the working directory`));
+        cb();
+      }
     } else {
       repo.checkout(branch, (checkoutError) => {
         if (checkoutError) {
