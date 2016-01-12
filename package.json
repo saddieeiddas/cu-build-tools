@@ -1,6 +1,6 @@
 {
   "name": "cu-build-tools",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "description": "Camelot Unchained UI Build Tools",
   "license": "MPL-2.0",
   "main": "index.js",
@@ -71,7 +71,7 @@
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
     "which": "^1.2.0",
-    "xmldom": "^0.1.19"
+    "xmldom": "0.1.19"
   },
   "devDependencies": {
     "gulp": "^3.9.0"
