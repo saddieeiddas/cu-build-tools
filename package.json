@@ -1,6 +1,6 @@
 {
   "name": "cu-build-tools",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "description": "Camelot Unchained UI Build Tools",
   "license": "MPL-2.0",
   "main": "index.js",

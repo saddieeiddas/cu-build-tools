@@ -255,6 +255,13 @@ export default function(gulp, options) {
     } else {
       const streams = [];
 
+      if (config.lib.third_party) {
+        const thirdPartyStream = gulp.src(`${config.src}/${config.lib.third_party_base}/**/*`, {base: `${config.src}/${config.lib.third_party_base}`})
+          .pipe(plugins.plumber(plumberOpts))
+          .pipe(gulp.dest(`${config.lib.dest}/${config.lib.third_party_base}`));
+        streams.push(thirdPartyStream);
+      }
+
       const jsStream = gulp.src(`${config.tmp}/**/*.js`, {base: `${config.tmp}/${config.lib.base}`})
         .pipe(plugins.plumber(plumberOpts))
         .pipe(gulp.dest(config.lib.dest));
@@ -438,6 +445,13 @@ export default function(gulp, options) {
             .pipe(plugins.plumber(plumberOpts))
             .pipe(gulp.dest(`${config.bundle.dest}`));
         streams.push(copyStream);
+      }
+
+      if (config.bundle.third_party) {
+        const thirdPartyStream = gulp.src(`${config.src}/${config.bundle.third_party_base}/**/*`, {base: `${config.src}/${config.bundle.third_party_base}`})
+          .pipe(plugins.plumber(plumberOpts))
+          .pipe(gulp.dest(`${config.bundle.dest}/${config.bundle.third_party_base}`));
+        streams.push(thirdPartyStream);
       }
 
       const uiStream = gulp.src(config.src + '/*.ui')

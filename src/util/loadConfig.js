@@ -39,6 +39,8 @@ function loadConfig(custom) {
         copy: false,
         copy_base: '',
         css_rename_main: false,
+        third_party: true,
+        third_party_base: 'third-party',
       },
       bundle: {
         dest: 'dist',
@@ -54,6 +56,8 @@ function loadConfig(custom) {
         copy: true,
         copy_base: '',
         css_rename_main: true,
+        third_party: true,
+        third_party_base: 'third-party',
       },
       config: {
         type: null,
